@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { motion } from "motion/react";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
+import { VendorServices } from "@/components/vendor-services";
 
 export function RoleLanding({
   role,
@@ -16,6 +17,37 @@ export function RoleLanding({
 }) {
   const { data: session, isPending } = useSession();
   const isVendor = role === "vendor";
+  const currentRole = (session?.user as { role?: string } | undefined)?.role;
+
+  if (isPending) {
+    return (
+      <main className="mx-auto max-w-4xl px-4 py-12 text-muted-foreground">
+        Checking your account…
+      </main>
+    );
+  }
+
+  if (!session || currentRole !== role) {
+    return (
+      <main className="mx-auto max-w-xl px-4 py-16">
+        <Card className="text-center">
+          <CardHeader>
+            <CardTitle>{session ? "Access restricted" : "Sign in required"}</CardTitle>
+            <CardDescription>
+              {session
+                ? `This page is available only to ${role} accounts.`
+                : `Sign in with a ${role} account to continue.`}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center gap-3">
+            <Link href={session ? "/dashboard" : "/auth?mode=sign-in"} className={cn(buttonVariants())}>
+              {session ? "Go to dashboard" : "Sign in"}
+            </Link>
+          </CardContent>
+        </Card>
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-12">
@@ -44,11 +76,7 @@ export function RoleLanding({
           {isVendor ? "Grow your business with MatriMap" : "Find the right service for your big day"}
         </h1>
         <p className="mt-2 text-muted-foreground">
-          {isPending
-            ? "Loading your account…"
-            : session
-              ? `Signed in as ${session.user.email} (${role}).`
-              : "You are browsing this area while signed out."}
+          Signed in as {session.user.email} ({role}).
         </p>
       </motion.div>
 
@@ -71,24 +99,22 @@ export function RoleLanding({
 
         <Card>
           <CardHeader>
-            <CardTitle>Browse services</CardTitle>
-            <CardDescription>See everything MatriMap has to offer.</CardDescription>
+            <CardTitle>{isVendor ? "Add a service" : "Browse services"}</CardTitle>
+            <CardDescription>
+              {isVendor
+                ? "Create another listing for customers to discover."
+                : "See everything MatriMap has to offer."}
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <Link href="/services" className={cn(buttonVariants())}>
-              Explore services
+            <Link href={isVendor ? "/services/add" : "/services"} className={cn(buttonVariants())}>
+              {isVendor ? "Add service" : "Explore services"}
             </Link>
           </CardContent>
         </Card>
       </div>
 
-      {!session && !isPending && (
-        <div className="mt-8">
-          <Button asChild variant="link" className="px-0">
-            <Link href="/auth?mode=sign-in">Sign in to continue</Link>
-          </Button>
-        </div>
-      )}
+      {isVendor && <div className="mt-8"><VendorServices /></div>}
     </main>
   );
 }

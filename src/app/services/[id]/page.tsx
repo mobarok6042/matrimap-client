@@ -28,6 +28,7 @@ export default function ServiceDetailsPage() {
   const serviceId = typeof params?.id === "string" ? params.id : Array.isArray(params?.id) ? params.id[0] : "";
 
   const { data: session } = useSession();
+  const role = (session?.user as { role?: string } | undefined)?.role;
   const [service, setService] = React.useState<Service | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [notFound, setNotFound] = React.useState(false);
@@ -207,7 +208,7 @@ export default function ServiceDetailsPage() {
               >
                 <Mail className="size-4" /> Send Email
               </a>
-              {session && service.isAvailable !== false && (
+              {role === "customer" && service.isAvailable !== false && (
                 <button
                   type="button"
                   onClick={() => {

@@ -80,10 +80,13 @@ export function SiteHeader() {
   const displayName = session?.user?.name || session?.user?.email?.split("@")[0] || "User";
   const isVendor = (session?.user as { role?: string } | undefined)?.role === "vendor";
 
-  const activeNavLinks = [
-    ...navLinks,
-    ...(isVendor ? [{ href: "/services/add", label: "Add Service" }] : []),
-  ];
+  const activeNavLinks = isVendor
+    ? [
+        { href: "/", label: "Home" },
+        { href: "/vendor", label: "My Services" },
+        { href: "/services/add", label: "Add Service" },
+      ]
+    : navLinks;
 
   return (
     <header className="sticky top-4 z-50 mx-auto mt-4 w-[calc(100%-2rem)] max-w-6xl">

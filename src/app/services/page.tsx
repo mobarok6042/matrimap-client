@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import {
@@ -10,23 +11,21 @@ import {
   CheckCircle2,
   Compass,
   DollarSign,
-  Heart,
   Loader2,
   Eye,
   Mail,
   MapPin,
   Phone,
-  PlusCircle,
   Search,
   Sparkles,
   Star,
-  Tag,
   User,
   X,
 } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CategoryServicesSection } from "@/components/category-services-section";
 import { useSession } from "@/lib/auth-client";
 import { apiFetch } from "@/lib/api";
 import type { Service } from "@/lib/types";
@@ -42,6 +41,29 @@ const CATEGORIES = [
   "Decoration & Floral",
   "Music, DJ & Entertainment",
   "Wedding Planning & Coordination",
+  "Invitation & Gifts",
+  "Jewelry & Accessories",
+  "Other",
+];
+
+const PAGE_SIZE = 9;
+
+const WHY_MATRIMAP = [
+  {
+    icon: CheckCircle2,
+    title: "Admin-reviewed listings",
+    description: "Explore services that have been reviewed before appearing in the marketplace.",
+  },
+  {
+    icon: DollarSign,
+    title: "Compare with clarity",
+    description: "See service details, locations, and starting prices together as you plan.",
+  },
+  {
+    icon: Calendar,
+    title: "Requests in one place",
+    description: "Send a booking request and follow its status from your customer dashboard.",
+  },
 ];
 
 export default function ServicesPage() {
@@ -51,10 +73,14 @@ export default function ServicesPage() {
   const [loading, setLoading] = React.useState(true);
   const [selectedCategory, setSelectedCategory] = React.useState("All");
   const [searchQuery, setSearchQuery] = React.useState("");
+  const [currentPage, setCurrentPage] = React.useState(1);
   const [seeding, setSeeding] = React.useState(false);
   const [activeContactService, setActiveContactService] = React.useState<Service | null>(null);
 
-  const isVendor = (session?.user as { role?: string } | undefined)?.role === "vendor";
+  const role = (session?.user as { role?: string } | undefined)?.role;
+  const isAdmin = role === "admin";
+  const pageCount = Math.max(1, Math.ceil(services.length / PAGE_SIZE));
+  const pageServices = services.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const fetchServices = React.useCallback(async () => {
     setLoading(true);
@@ -107,7 +133,7 @@ export default function ServicesPage() {
         transition={{ duration: 0.4 }}
         className="mb-8"
       >
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div id="services-catalog" className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3.5 py-1 text-xs font-semibold text-primary">
               <Sparkles className="size-3.5" /> Verified Wedding Marketplace
@@ -121,25 +147,13 @@ export default function ServicesPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            {isVendor ? (
+            {!session && (
               <Link
-                href="/services/add"
-                className={cn(
-                  buttonVariants({ size: "default" }),
-                  "gap-2 bg-primary font-semibold text-primary-foreground shadow-md shadow-primary/20",
-                )}
+                href="/auth?mode=sign-in"
+                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "text-xs")}
               >
-                <PlusCircle className="size-4" /> Add Service
+                Sign in
               </Link>
-            ) : (
-              !session && (
-                <Link
-                  href="/auth?mode=sign-in"
-                  className={cn(buttonVariants({ variant: "outline", size: "sm" }), "text-xs")}
-                >
-                  Vendor Sign in
-                </Link>
-              )
             )}
           </div>
         </div>
@@ -151,13 +165,19 @@ export default function ServicesPage() {
           <Search className="absolute left-3.5 top-3 size-4 text-muted-foreground" />
           <Input
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
             placeholder="Search by title, service, location, or vendor…"
             className="pl-10 pr-4"
           />
           {searchQuery && (
             <button
-              onClick={() => setSearchQuery("")}
+              onClick={() => {
+                setSearchQuery("");
+                setCurrentPage(1);
+              }}
               className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
             >
               <X className="size-4" />
@@ -172,7 +192,10 @@ export default function ServicesPage() {
             return (
               <button
                 key={cat}
-                onClick={() => setSelectedCategory(cat)}
+                onClick={() => {
+                  setSelectedCategory(cat);
+                  setCurrentPage(1);
+                }}
                 className={cn(
                   "rounded-full px-3.5 py-1.5 text-xs font-medium transition-all whitespace-nowrap",
                   isSelected
@@ -213,34 +236,32 @@ export default function ServicesPage() {
                 onClick={() => {
                   setSelectedCategory("All");
                   setSearchQuery("");
+                  setCurrentPage(1);
                 }}
               >
                 Clear all filters
               </Button>
             ) : (
               <>
-                {isVendor && (
-                  <Link href="/services/add" className={cn(buttonVariants({ size: "sm" }), "gap-2")}>
-                    <PlusCircle className="size-4" /> Add the First Service
-                  </Link>
+                {isAdmin && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={seeding}
+                    onClick={handleSeed}
+                    className="gap-2"
+                  >
+                    {seeding && <Loader2 className="size-4 animate-spin" />}
+                    Load Example Services
+                  </Button>
                 )}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={seeding}
-                  onClick={handleSeed}
-                  className="gap-2"
-                >
-                  {seeding && <Loader2 className="size-4 animate-spin" />}
-                  Load Example Services
-                </Button>
               </>
             )}
           </div>
         </Card>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {services.map((service) => (
+          {pageServices.map((service) => (
             <Card
               key={service._id}
               className="group flex h-full flex-col overflow-hidden border border-border bg-card/80 shadow-sm transition-all hover:border-primary/40 hover:shadow-lg"
@@ -328,6 +349,83 @@ export default function ServicesPage() {
           ))}
         </div>
       )}
+
+      {!loading && services.length > PAGE_SIZE && (
+        <nav className="mt-8 flex flex-col items-center justify-between gap-4 sm:flex-row" aria-label="Service pages">
+          <p className="text-sm text-muted-foreground">
+            Showing {(currentPage - 1) * PAGE_SIZE + 1}–
+            {Math.min(currentPage * PAGE_SIZE, services.length)} of {services.length} services
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+            >
+              Previous
+            </Button>
+            <span className="px-2 text-sm text-muted-foreground" aria-live="polite">
+              Page {currentPage} of {pageCount}
+            </span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={currentPage === pageCount}
+              onClick={() => setCurrentPage((page) => Math.min(pageCount, page + 1))}
+            >
+              Next
+            </Button>
+          </div>
+        </nav>
+      )}
+
+      <CategoryServicesSection
+        onSelectCategory={(category) => {
+          setSelectedCategory(category);
+          setSearchQuery("");
+          setCurrentPage(1);
+          document.getElementById("services-catalog")?.scrollIntoView({ behavior: "smooth" });
+        }}
+      />
+
+      <section className="mt-20 overflow-hidden rounded-3xl border border-border bg-card/70" aria-labelledby="why-matrimap">
+        <div className="grid md:grid-cols-2">
+          <div className="p-6 sm:p-10 lg:p-12">
+            <p className="text-sm font-medium uppercase tracking-wider text-primary">Plan with confidence</p>
+            <h2 id="why-matrimap" className="mt-2 text-3xl font-semibold tracking-tight">
+              Why choose MatriMap?
+            </h2>
+            <p className="mt-3 text-muted-foreground">
+              Bring the details together, discover local wedding professionals, and keep your next steps organized.
+            </p>
+            <ul className="mt-8 space-y-5">
+              {WHY_MATRIMAP.map(({ icon: Icon, title, description }) => (
+                <li key={title} className="flex gap-3">
+                  <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <Icon className="size-4" />
+                  </span>
+                  <div>
+                    <h3 className="font-semibold">{title}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="relative min-h-72 overflow-hidden md:min-h-full">
+            <Image
+              src="/why-matrimap.jpg"
+              alt="A newlywed couple leaving their wedding ceremony surrounded by family and friends"
+              fill
+              sizes="(max-width: 768px) 100vw, 50vw"
+              className="object-cover"
+            />
+          </div>
+        </div>
+      </section>
 
       {/* Vendor Contact Modal */}
       {activeContactService && (

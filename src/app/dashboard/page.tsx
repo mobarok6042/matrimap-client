@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import {
   ArrowRight,
@@ -19,6 +20,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckoutButton } from "@/components/checkout-button";
 import { AdminDashboard } from "@/components/admin-dashboard";
+import { VendorServices } from "@/components/vendor-services";
 import { buttonVariants } from "@/components/ui/button";
 import { useSession } from "@/lib/auth-client";
 import type { UserRole } from "@/lib/auth-client";
@@ -267,9 +269,17 @@ function VendorBookings() {
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 export default function DashboardPage() {
   const { data: session, isPending } = useSession();
+  const router = useRouter();
+  const role = (session?.user as { role?: UserRole } | undefined)?.role;
   const [avatarUrl, setAvatarUrl] = React.useState<string | null>(null);
   const [profile, setProfile] = React.useState<Profile | null>(null);
   const [imageError, setImageError] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!isPending && session && role !== "customer" && role !== "vendor" && role !== "admin") {
+      router.replace("/complete-profile");
+    }
+  }, [isPending, role, router, session]);
 
   React.useEffect(() => {
     setImageError(false);
@@ -309,7 +319,10 @@ export default function DashboardPage() {
     );
   }
 
-  const role = (session.user as { role?: UserRole }).role;
+  if (role !== "customer" && role !== "vendor" && role !== "admin") {
+    return <main className="mx-auto max-w-4xl px-4 py-16 text-muted-foreground">Completing account setup…</main>;
+  }
+
   const isVendor = role === "vendor";
   const displayName =
     profile?.displayName || session.user.name || session.user.email?.split("@")[0] || "User";
@@ -386,21 +399,25 @@ export default function DashboardPage() {
         {/* Booking section — role-specific */}
         {isVendor ? <VendorBookings /> : <CustomerBookings />}
 
+        {isVendor && <VendorServices />}
+
         {/* Quick Links */}
         <div className="grid gap-4 sm:grid-cols-2">
-          <Card className="border border-border bg-card/60">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Compass className="size-4 text-primary" /> Browse Services
-              </CardTitle>
-              <CardDescription>Explore matrimonial and wedding vendor services.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Link href="/services" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
-                View services
-              </Link>
-            </CardContent>
-          </Card>
+          {!isVendor && (
+            <Card className="border border-border bg-card/60">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Compass className="size-4 text-primary" /> Browse Services
+                </CardTitle>
+                <CardDescription>Explore matrimonial and wedding vendor services.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Link href="/services" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
+                  View services
+                </Link>
+              </CardContent>
+            </Card>
+          )}
 
           <Card className="border border-border bg-card/60">
             <CardHeader className="pb-3">

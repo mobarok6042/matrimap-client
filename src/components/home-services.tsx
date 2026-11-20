@@ -6,15 +6,19 @@ import { ArrowRight, Building2, Loader2, MapPin, Star } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { apiFetch } from "@/lib/api";
+import { useSession } from "@/lib/auth-client";
 import type { Service } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export function HomeServices() {
+  const { data: session, isPending: sessionPending } = useSession();
+  const role = (session?.user as { role?: string } | undefined)?.role;
   const [services, setServices] = React.useState<Service[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
+    if (sessionPending || role === "vendor") return;
     let active = true;
 
     apiFetch<Service[]>("/api/services")
@@ -38,7 +42,24 @@ export function HomeServices() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [role, sessionPending]);
+
+  if (role === "vendor") {
+    return (
+      <section className="mx-auto max-w-6xl px-4 py-16 sm:py-20" aria-labelledby="vendor-services">
+        <p className="text-sm font-medium uppercase tracking-wider text-primary">Vendor space</p>
+        <h2 id="vendor-services" className="mt-2 text-3xl font-semibold tracking-tight">
+          Manage your services
+        </h2>
+        <p className="mt-2 text-muted-foreground">
+          Your listings are available only in your vendor workspace.
+        </p>
+        <Link href="/vendor" className={cn(buttonVariants(), "mt-6 gap-2")}>
+          My Services <ArrowRight className="size-4" />
+        </Link>
+      </section>
+    );
+  }
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-16 sm:py-20" aria-labelledby="featured-services">

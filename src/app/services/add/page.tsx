@@ -61,8 +61,13 @@ interface UploadResponse {
 }
 
 export default function AddServicePage() {
+  return <ServiceForm />;
+}
+
+export function ServiceForm({ serviceId }: { serviceId?: string }) {
   const router = useRouter();
   const { data: session, isPending } = useSession();
+  const role = (session?.user as { role?: string } | undefined)?.role;
 
   // Form State
   const [serviceName, setServiceName] = React.useState("");
@@ -85,6 +90,8 @@ export default function AddServicePage() {
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [success, setSuccess] = React.useState(false);
+  const [serviceLoading, setServiceLoading] = React.useState(Boolean(serviceId));
+  const [serviceLoadError, setServiceLoadError] = React.useState<string | null>(null);
 
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
 
@@ -95,7 +102,38 @@ export default function AddServicePage() {
     }
   }, [session, email]);
 
-  const role = (session?.user as { role?: string } | undefined)?.role;
+  React.useEffect(() => {
+    if (!serviceId || isPending || role !== "vendor") return;
+    let active = true;
+
+    apiFetch<Service>(`/api/services/${serviceId}/manage`)
+      .then((service) => {
+        if (!active) return;
+        setServiceName(service.title);
+        setServiceCategory(service.category);
+        setDescription(service.description);
+        setPrice(String(service.price));
+        setPricingUnit(service.pricingUnit || PRICING_UNITS[0]);
+        setLocation(service.location);
+        setPhone(service.phone || "");
+        setEmail(service.email || "");
+        setImageUrl(service.image || service.images?.[0] || "");
+      })
+      .catch((caught: unknown) => {
+        if (active) {
+          setServiceLoadError(
+            caught instanceof Error ? caught.message : "Could not load this service.",
+          );
+        }
+      })
+      .finally(() => {
+        if (active) setServiceLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [serviceId, isPending, role]);
 
   // Handle direct file selection and automatic upload to ImgBB
   async function handleFileSelected(file: File) {
@@ -180,8 +218,8 @@ export default function AddServicePage() {
     setBusy(true);
 
     try {
-      await apiFetch<Service>("/api/services", {
-        method: "POST",
+      await apiFetch<Service>(serviceId ? `/api/services/${serviceId}` : "/api/services", {
+        method: serviceId ? "PUT" : "POST",
         body: JSON.stringify({
           title: serviceName.trim(),
           serviceName: serviceName.trim(),
@@ -200,7 +238,7 @@ export default function AddServicePage() {
 
       setSuccess(true);
       setTimeout(() => {
-        router.push("/dashboard");
+        router.push(serviceId ? "/vendor" : "/dashboard");
         router.refresh();
       }, 1500);
     } catch (caught) {
@@ -210,7 +248,7 @@ export default function AddServicePage() {
     }
   }
 
-  if (isPending) {
+  if (isPending || (serviceId && role === "vendor" && serviceLoading)) {
     return (
       <main className="flex min-h-[calc(100vh-10rem)] items-center justify-center text-muted-foreground">
         <Loader2 className="mr-2 size-5 animate-spin" /> Verifying vendor authorization…
@@ -271,6 +309,24 @@ export default function AddServicePage() {
     );
   }
 
+  if (serviceLoadError) {
+    return (
+      <main className="mx-auto max-w-lg px-4 py-16">
+        <Card className="text-center">
+          <CardHeader>
+            <CardTitle>Unable to edit service</CardTitle>
+            <CardDescription role="alert">{serviceLoadError}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link href="/vendor" className={cn(buttonVariants())}>
+              Back to vendor dashboard
+            </Link>
+          </CardContent>
+        </Card>
+      </main>
+    );
+  }
+
   return (
     <main className="mx-auto max-w-3xl px-4 py-12">
       <motion.div
@@ -280,17 +336,17 @@ export default function AddServicePage() {
       >
         <div className="mb-4">
           <Link
-            href="/services"
+            href={serviceId ? "/vendor" : "/services"}
             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
-            <ArrowLeft className="size-4" /> Back to Services
+            <ArrowLeft className="size-4" /> {serviceId ? "Back to Vendor Dashboard" : "Back to Services"}
           </Link>
         </div>
 
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-foreground">
-              Add Wedding Service
+              {serviceId ? "Edit Wedding Service" : "Add Wedding Service"}
             </h1>
             <p className="mt-1 text-muted-foreground">
               Fill in the required service details and upload your showcase photo using ImgBB.
@@ -307,13 +363,17 @@ export default function AddServicePage() {
             <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-secondary/20 text-foreground">
               <CheckCircle2 className="size-8" />
             </div>
-            <h2 className="text-2xl font-bold text-foreground">Service Submitted for Review</h2>
+            <h2 className="text-2xl font-bold text-foreground">
+              {serviceId ? "Service Updated" : "Service Submitted for Review"}
+            </h2>
             <p className="mt-2 text-muted-foreground">
-              Your listing will appear in the services catalog after an administrator approves it.
+              {serviceId
+                ? "Your changes were saved and the service is pending administrator review."
+                : "Your listing will appear in the services catalog after an administrator approves it."}
             </p>
             <div className="mt-6 flex justify-center gap-3">
-              <Link href="/dashboard" className={cn(buttonVariants())}>
-                Go to Dashboard
+              <Link href={serviceId ? "/vendor" : "/dashboard"} className={cn(buttonVariants())}>
+                {serviceId ? "Go to Vendor Dashboard" : "Go to Dashboard"}
               </Link>
             </div>
           </Card>
@@ -580,7 +640,7 @@ export default function AddServicePage() {
             )}
 
             <div className="flex items-center justify-end gap-3 pt-2">
-              <Link href="/services" className={cn(buttonVariants({ variant: "outline" }))}>
+              <Link href={serviceId ? "/vendor" : "/services"} className={cn(buttonVariants({ variant: "outline" }))}>
                 Cancel
               </Link>
               <Button
@@ -591,11 +651,13 @@ export default function AddServicePage() {
               >
                 {busy ? (
                   <>
-                    <Loader2 className="size-4 animate-spin" /> Publishing to Atlas…
+                    <Loader2 className="size-4 animate-spin" />
+                    {serviceId ? "Saving changes…" : "Publishing to Atlas…"}
                   </>
                 ) : (
                   <>
-                    <PlusCircle className="size-4" /> Publish Service
+                    <PlusCircle className="size-4" />
+                    {serviceId ? "Save Changes" : "Publish Service"}
                   </>
                 )}
               </Button>
