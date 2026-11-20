@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import * as React from "react";
 import { motion } from "motion/react";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,34 +18,38 @@ export function RoleLanding({
   showWelcome: boolean;
 }) {
   const { data: session, isPending } = useSession();
+  const router = useRouter();
   const isVendor = role === "vendor";
   const currentRole = (session?.user as { role?: string } | undefined)?.role;
+  const isBlocked = (session?.user as { isBlocked?: boolean } | undefined)?.isBlocked === true;
 
-  if (isPending) {
+  React.useEffect(() => {
+    if (isPending) return;
+    if (!session) {
+      router.replace("/auth?mode=sign-in");
+    } else if (!isBlocked && currentRole !== role) {
+      router.replace("/dashboard");
+    }
+  }, [currentRole, isBlocked, isPending, role, router, session]);
+
+  if (isPending || !session || (!isBlocked && currentRole !== role)) {
     return (
       <main className="mx-auto max-w-4xl px-4 py-12 text-muted-foreground">
-        Checking your account…
+        {isPending ? "Checking your account…" : "Redirecting…"}
       </main>
     );
   }
 
-  if (!session || currentRole !== role) {
+  if (isBlocked) {
     return (
       <main className="mx-auto max-w-xl px-4 py-16">
         <Card className="text-center">
           <CardHeader>
-            <CardTitle>{session ? "Access restricted" : "Sign in required"}</CardTitle>
+            <CardTitle>Account blocked</CardTitle>
             <CardDescription>
-              {session
-                ? `This page is available only to ${role} accounts.`
-                : `Sign in with a ${role} account to continue.`}
+              Your account is blocked and cannot access platform features. Contact support for assistance.
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex justify-center gap-3">
-            <Link href={session ? "/dashboard" : "/auth?mode=sign-in"} className={cn(buttonVariants())}>
-              {session ? "Go to dashboard" : "Sign in"}
-            </Link>
-          </CardContent>
         </Card>
       </main>
     );

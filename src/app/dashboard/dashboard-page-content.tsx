@@ -272,19 +272,23 @@ export default function DashboardPage() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
   const role = (session?.user as { role?: UserRole } | undefined)?.role;
+  const isBlocked = (session?.user as { isBlocked?: boolean } | undefined)?.isBlocked === true;
   const [avatarUrl, setAvatarUrl] = React.useState<string | null>(null);
   const [profile, setProfile] = React.useState<Profile | null>(null);
   const [profileError, setProfileError] = React.useState<string | null>(null);
   const [imageError, setImageError] = React.useState(false);
 
   React.useEffect(() => {
-    if (!isPending && session && role !== "customer" && role !== "vendor" && role !== "admin") {
+    if (isPending) return;
+    if (!session) {
+      router.replace("/auth?mode=sign-in");
+    } else if (!isBlocked && role !== "customer" && role !== "vendor" && role !== "admin") {
       router.replace("/complete-profile");
     }
-  }, [isPending, role, router, session]);
+  }, [isBlocked, isPending, role, router, session]);
 
   React.useEffect(() => {
-    if (!session?.user) return;
+    if (!session?.user || isBlocked) return;
     apiFetch<Profile>("/api/profiles/me")
       .then((p) => {
         setProfile(p);
@@ -298,7 +302,7 @@ export default function DashboardPage() {
           caught instanceof Error ? caught.message : "Could not load your profile details.",
         );
       });
-  }, [session]);
+  }, [isBlocked, session]);
 
   if (isPending) {
     return <main className="mx-auto max-w-4xl px-4 py-16 text-muted-foreground">Loading session…</main>;
@@ -306,17 +310,22 @@ export default function DashboardPage() {
 
   if (!session) {
     return (
-      <main className="mx-auto max-w-4xl px-4 py-16">
-        <Card className="mx-auto max-w-md text-center">
+      <main className="mx-auto max-w-4xl px-4 py-16 text-muted-foreground">
+        Redirecting to sign in…
+      </main>
+    );
+  }
+
+  if (isBlocked) {
+    return (
+      <main className="mx-auto max-w-xl px-4 py-16">
+        <Card className="text-center">
           <CardHeader>
-            <CardTitle>Sign in required</CardTitle>
-            <CardDescription>Sign in to view your dashboard.</CardDescription>
+            <CardTitle>Account blocked</CardTitle>
+            <CardDescription>
+              Your account is blocked and cannot access dashboard features. Contact support for assistance.
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Link href="/auth?mode=sign-in" className={cn(buttonVariants())}>
-              Go to sign in
-            </Link>
-          </CardContent>
         </Card>
       </main>
     );
