@@ -15,7 +15,11 @@ interface ProfileInput {
   age?: string | number;
 }
 
-export function ProfileForm() {
+interface ProfileFormProps {
+  onSaved?: (profile: Profile) => void;
+}
+
+export function ProfileForm({ onSaved }: ProfileFormProps = {}) {
   const [form, setForm] = React.useState<ProfileInput>({
     displayName: "",
     bio: "",
@@ -63,7 +67,7 @@ export function ProfileForm() {
     setMessage(null);
 
     try {
-      await apiFetch<Profile>("/api/profiles", {
+      const savedProfile = await apiFetch<Profile>("/api/profiles", {
         method: "POST",
         body: JSON.stringify({
           ...form,
@@ -71,6 +75,7 @@ export function ProfileForm() {
         }),
       });
       setMessage("Profile saved.");
+      onSaved?.(savedProfile);
     } catch (error) {
       setMessage((error as Error).message);
     } finally {

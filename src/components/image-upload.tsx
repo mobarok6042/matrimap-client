@@ -14,7 +14,11 @@ interface UploadResponse {
   deleteUrl: string;
 }
 
-export function ImageUpload() {
+interface UploadProps {
+  onUploaded?: (url: string) => void;
+}
+
+export function ImageUpload({ onUploaded }: UploadProps = {}) {
   const [file, setFile] = React.useState<File | null>(null);
   const [uploaded, setUploaded] = React.useState<UploadResponse | null>(null);
   const [busy, setBusy] = React.useState(false);
@@ -30,7 +34,9 @@ export function ImageUpload() {
     try {
       const body = new FormData();
       body.append("image", file);
-      setUploaded(await apiFetch<UploadResponse>("/api/upload/image", { method: "POST", body }));
+      const res = await apiFetch<UploadResponse>("/api/upload/image", { method: "POST", body });
+      setUploaded(res);
+      onUploaded?.(res.displayUrl);
     } catch (caught) {
       setError((caught as Error).message);
     } finally {

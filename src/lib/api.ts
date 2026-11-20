@@ -1,4 +1,7 @@
-const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL ?? "http://localhost:4000";
+const SERVER_URL =
+  typeof window !== "undefined"
+    ? ""
+    : (process.env.AUTH_UPSTREAM_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000");
 
 export interface ApiErrorBody {
   error?: string;
@@ -19,8 +22,11 @@ export class ApiError extends Error {
 /** Small fetch wrapper for the Express API. Cookies are always included. */
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const isFormData = typeof FormData !== "undefined" && init?.body instanceof FormData;
+  const url = path.startsWith("http")
+    ? path
+    : `${SERVER_URL}${path.startsWith("/") ? "" : "/"}${path}`;
 
-  const response = await fetch(`${SERVER_URL}${path}`, {
+  const response = await fetch(url, {
     ...init,
     credentials: "include",
     headers: isFormData

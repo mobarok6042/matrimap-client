@@ -11,12 +11,15 @@ npm install
 npm run dev                 # http://localhost:3000
 ```
 
-The Express API must be running on `http://localhost:4000` (or set
-`NEXT_PUBLIC_SERVER_URL`).
+The Express API must be running on `http://localhost:4000`. Auth requests use
+the Next.js origin (`http://localhost:3000`) and are proxied to Express by
+`src/app/api/auth/[...all]/route.ts`.
 
 | Variable | Default | Notes |
 | --- | --- | --- |
-| `NEXT_PUBLIC_SERVER_URL` | `http://localhost:4000` | Express API base URL, no trailing slash |
+| `NEXT_PUBLIC_SERVER_URL` | `http://localhost:3000` | Browser-facing auth origin; must match server `BETTER_AUTH_URL` |
+| `AUTH_UPSTREAM_URL` | `http://localhost:4000` | Express server that owns the Better Auth handler (server-side only) |
+| `NEXT_PUBLIC_API_URL` | `http://localhost:4000` | Express API for profiles, uploads and payments |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | empty | Only needed if you switch to embedded Stripe.js checkout |
 
 ## What's included
@@ -24,7 +27,10 @@ The Express API must be running on `http://localhost:4000` (or set
 | Route | Purpose |
 | --- | --- |
 | `/` | Animated landing page (Motion + HeroUI `Button`/`Chip`) |
-| `/auth` | Better Auth email sign-in / sign-up (ShadCN form primitives) |
+| `/auth` | Email + Google sign-in/sign-up with role selection and password rules |
+| `/complete-profile` | Google users pick Vendor/Customer role, then redirect |
+| `/customer`, `/vendor` | Role-based landing pages after sign-up/sign-in |
+| `/api/auth/[...all]` | Proxy forwarding Better Auth requests to Express |
 | `/profiles` | Public profile list from the API |
 | `/dashboard` | Session, profile editor, ImgBB upload, Stripe Checkout button |
 | `/checkout/success`, `/checkout/cancel` | Stripe return pages |
@@ -45,8 +51,9 @@ The Express API must be running on `http://localhost:4000` (or set
 
 ## Shared code
 
-- `src/lib/auth-client.ts` — Better Auth client pointed at `NEXT_PUBLIC_SERVER_URL`,
-  always sending credentials.
+- `src/lib/auth-client.ts` — Better Auth client pointed at `NEXT_PUBLIC_SERVER_URL`
+  (the Next.js proxy), always sending credentials. Also exports
+  `redirectPathForRole()` for role-based redirects.
 - `src/lib/api.ts` — small `apiFetch<T>()` helper for Express endpoints
   (handles JSON vs `FormData` headers and throws `ApiError`).
 - `src/lib/types.ts` — shared `Profile` shape.
