@@ -16,7 +16,6 @@ import {
   Mail,
   MapPin,
   Phone,
-  Search,
   Sparkles,
   Star,
   User,
@@ -24,27 +23,11 @@ import {
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { CategoryServicesSection } from "@/components/category-services-section";
 import { useSession } from "@/lib/auth-client";
 import { apiFetch } from "@/lib/api";
 import type { Service } from "@/lib/types";
 import { cn } from "@/lib/utils";
-
-const CATEGORIES = [
-  "All",
-  "Photography & Videography",
-  "Venues & Banquet Halls",
-  "Catering & Feasts",
-  "Bridal Wear & Styling",
-  "Makeup & Hair Styling",
-  "Decoration & Floral",
-  "Music, DJ & Entertainment",
-  "Wedding Planning & Coordination",
-  "Invitation & Gifts",
-  "Jewelry & Accessories",
-  "Other",
-];
 
 const PAGE_SIZE = 9;
 
@@ -71,8 +54,6 @@ export default function ServicesPage() {
   const router = useRouter();
   const [services, setServices] = React.useState<Service[]>([]);
   const [loading, setLoading] = React.useState(true);
-  const [selectedCategory, setSelectedCategory] = React.useState("All");
-  const [searchQuery, setSearchQuery] = React.useState("");
   const [currentPage, setCurrentPage] = React.useState(1);
   const [seeding, setSeeding] = React.useState(false);
   const [activeContactService, setActiveContactService] = React.useState<Service | null>(null);
@@ -85,17 +66,7 @@ export default function ServicesPage() {
   const fetchServices = React.useCallback(async () => {
     setLoading(true);
     try {
-      const queryParams = new URLSearchParams();
-      if (selectedCategory && selectedCategory !== "All") {
-        queryParams.set("category", selectedCategory);
-      }
-      if (searchQuery.trim()) {
-        queryParams.set("search", searchQuery.trim());
-      }
-
-      const queryString = queryParams.toString();
-      const path = queryString ? `/api/services?${queryString}` : "/api/services";
-      const data = await apiFetch<Service[]>(path);
+      const data = await apiFetch<Service[]>("/api/services");
       setServices(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to load services:", err);
@@ -103,7 +74,7 @@ export default function ServicesPage() {
     } finally {
       setLoading(false);
     }
-  }, [selectedCategory, searchQuery]);
+  }, []);
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
@@ -159,57 +130,6 @@ export default function ServicesPage() {
         </div>
       </motion.div>
 
-      {/* Filter & Search Bar */}
-      <div className="mb-8 space-y-4">
-        <div className="relative max-w-md">
-          <Search className="absolute left-3.5 top-3 size-4 text-muted-foreground" />
-          <Input
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1);
-            }}
-            placeholder="Search by title, service, location, or vendor…"
-            className="pl-10 pr-4"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => {
-                setSearchQuery("");
-                setCurrentPage(1);
-              }}
-              className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
-            >
-              <X className="size-4" />
-            </button>
-          )}
-        </div>
-
-        {/* Category Pills */}
-        <div className="flex flex-wrap items-center gap-2 overflow-x-auto pb-2">
-          {CATEGORIES.map((cat) => {
-            const isSelected = selectedCategory === cat;
-            return (
-              <button
-                key={cat}
-                onClick={() => {
-                  setSelectedCategory(cat);
-                  setCurrentPage(1);
-                }}
-                className={cn(
-                  "rounded-full px-3.5 py-1.5 text-xs font-medium transition-all whitespace-nowrap",
-                  isSelected
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "border border-border bg-card/60 text-foreground hover:bg-accent",
-                )}
-              >
-                {cat}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
       {/* Services Grid */}
       {loading ? (
         <div className="flex min-h-[300px] flex-col items-center justify-center text-muted-foreground">
@@ -223,41 +143,23 @@ export default function ServicesPage() {
           </div>
           <h3 className="text-xl font-semibold text-foreground">No services found</h3>
           <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-            {searchQuery || selectedCategory !== "All"
-              ? "No services match your active search or category filters. Try clearing your search."
-              : "No wedding services have been listed yet in the Atlas database."}
+            No wedding services have been listed yet in the Atlas database.
           </p>
 
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-            {searchQuery || selectedCategory !== "All" ? (
+          {isAdmin && (
+            <div className="mt-6 flex justify-center">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  setSelectedCategory("All");
-                  setSearchQuery("");
-                  setCurrentPage(1);
-                }}
+                disabled={seeding}
+                onClick={handleSeed}
+                className="gap-2"
               >
-                Clear all filters
+                {seeding && <Loader2 className="size-4 animate-spin" />}
+                Load Example Services
               </Button>
-            ) : (
-              <>
-                {isAdmin && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={seeding}
-                    onClick={handleSeed}
-                    className="gap-2"
-                  >
-                    {seeding && <Loader2 className="size-4 animate-spin" />}
-                    Load Example Services
-                  </Button>
-                )}
-              </>
-            )}
-          </div>
+            </div>
+          )}
         </Card>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -382,14 +284,7 @@ export default function ServicesPage() {
         </nav>
       )}
 
-      <CategoryServicesSection
-        onSelectCategory={(category) => {
-          setSelectedCategory(category);
-          setSearchQuery("");
-          setCurrentPage(1);
-          document.getElementById("services-catalog")?.scrollIntoView({ behavior: "smooth" });
-        }}
-      />
+      <CategoryServicesSection />
 
       <section className="mt-20 overflow-hidden rounded-3xl border border-border bg-card/70" aria-labelledby="why-matrimap">
         <div className="grid md:grid-cols-2">

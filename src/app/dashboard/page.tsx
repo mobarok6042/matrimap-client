@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckoutButton } from "@/components/checkout-button";
+import { VendorPlanManager } from "@/components/vendor-plan-manager";
 import { AdminDashboard } from "@/components/admin-dashboard";
 import { VendorServices } from "@/components/vendor-services";
 import { buttonVariants } from "@/components/ui/button";
@@ -434,16 +435,19 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        {/* Premium Subscription Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Premium Membership</CardTitle>
-            <CardDescription>Upgrade to unlock verified contacts and direct messaging.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <CheckoutButton />
-          </CardContent>
-        </Card>
+        {isVendor ? (
+          <VendorPlanManager />
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle>Premium Membership</CardTitle>
+              <CardDescription>Upgrade to unlock verified contacts and direct messaging.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CheckoutButton />
+            </CardContent>
+          </Card>
+        )}
       </div>
     </main>
   );

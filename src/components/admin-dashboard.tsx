@@ -5,6 +5,7 @@ import {
   Ban,
   CheckCircle2,
   Clock3,
+  CreditCard,
   Loader2,
   MapPin,
   Power,
@@ -15,7 +16,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { apiFetch } from "@/lib/api";
-import type { Service } from "@/lib/types";
+import type { PaymentTransaction, Service } from "@/lib/types";
 
 interface AdminUser {
   id: string;
@@ -29,10 +30,13 @@ interface AdminUser {
 export function AdminDashboard({ adminName }: { adminName: string }) {
   const [services, setServices] = React.useState<Service[]>([]);
   const [users, setUsers] = React.useState<AdminUser[]>([]);
+  const [payments, setPayments] = React.useState<PaymentTransaction[]>([]);
   const [servicesLoading, setServicesLoading] = React.useState(true);
   const [usersLoading, setUsersLoading] = React.useState(true);
+  const [paymentsLoading, setPaymentsLoading] = React.useState(true);
   const [servicesError, setServicesError] = React.useState<string | null>(null);
   const [usersError, setUsersError] = React.useState<string | null>(null);
+  const [paymentsError, setPaymentsError] = React.useState<string | null>(null);
   const [serviceAction, setServiceAction] = React.useState<string | null>(null);
   const [userAction, setUserAction] = React.useState<string | null>(null);
 
@@ -63,6 +67,19 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
       })
       .finally(() => {
         if (active) setUsersLoading(false);
+      });
+
+    apiFetch<PaymentTransaction[]>("/api/admin/payments")
+      .then((data) => {
+        if (active) setPayments(data);
+      })
+      .catch((error: unknown) => {
+        if (active) {
+          setPaymentsError(error instanceof Error ? error.message : "Could not load payments.");
+        }
+      })
+      .finally(() => {
+        if (active) setPaymentsLoading(false);
       });
 
     return () => {
@@ -134,6 +151,53 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
       </header>
 
       <div className="grid gap-8">
+        <Card className="border-border bg-card/70">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="size-5 text-primary" /> Vendor plan payments
+            </CardTitle>
+            <CardDescription>One-time plan purchases confirmed by Stripe.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {paymentsError && <p role="alert" className="text-sm text-destructive">{paymentsError}</p>}
+            {paymentsLoading ? (
+              <p className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
+                <Loader2 className="size-4 animate-spin" /> Loading payments…
+              </p>
+            ) : payments.length === 0 ? (
+              <p className="py-4 text-sm text-muted-foreground">No vendor plan payments found.</p>
+            ) : (
+              payments.map((payment) => (
+                <article
+                  key={payment._id}
+                  className="flex flex-col gap-2 rounded-xl border border-border bg-background/60 p-4 sm:flex-row sm:items-center"
+                >
+                  <div className="min-w-0 flex-1">
+                    <h2 className="font-semibold">
+                      {payment.vendorName} · <span className="capitalize">{payment.plan}</span>
+                    </h2>
+                    <p className="text-sm text-muted-foreground">{payment.vendorEmail}</p>
+                    <p className="mt-1 break-all text-xs text-muted-foreground">
+                      Checkout: {payment.checkoutSessionId}
+                    </p>
+                  </div>
+                  <div className="text-sm sm:text-right">
+                    <p className="font-semibold">
+                      {new Intl.NumberFormat(undefined, {
+                        style: "currency",
+                        currency: payment.currency.toUpperCase(),
+                      }).format(payment.amount / 100)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(payment.paidAt).toLocaleString()}
+                    </p>
+                  </div>
+                </article>
+              ))
+            )}
+          </CardContent>
+        </Card>
+
         <Card className="border-border bg-card/70">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

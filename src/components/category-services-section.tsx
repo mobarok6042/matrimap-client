@@ -2,51 +2,88 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowRight, Building2, Loader2, MapPin } from "lucide-react";
+import { ArrowRight, Building2, Loader2, MapPin, Search, X } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import type { Service } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-export function CategoryServicesSection({
-  onSelectCategory,
-}: {
-  onSelectCategory: (category: string) => void;
-}) {
+const CATEGORIES = [
+  "All",
+  "Photography & Videography",
+  "Venues & Banquet Halls",
+  "Catering & Feasts",
+  "Bridal Wear & Styling",
+  "Makeup & Hair Styling",
+  "Decoration & Floral",
+  "Music, DJ & Entertainment",
+  "Wedding Planning & Coordination",
+  "Invitation & Gifts",
+  "Jewelry & Accessories",
+  "Other",
+];
+
+type PriceOrder = "recommended" | "ascending" | "descending";
+
+export function CategoryServicesSection() {
+  const [selectedCategory, setSelectedCategory] = React.useState("All");
+  const [keyword, setKeyword] = React.useState("");
+  const [priceOrder, setPriceOrder] = React.useState<PriceOrder>("recommended");
   const [services, setServices] = React.useState<Service[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     let active = true;
-    apiFetch<Service[]>("/api/services")
-      .then((data) => {
-        if (active) setServices(data);
-      })
-      .catch((caught: unknown) => {
-        if (active) {
-          setError(caught instanceof Error ? caught.message : "Could not load service categories.");
-        }
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
+    const timer = setTimeout(() => {
+      const params = new URLSearchParams();
+      if (selectedCategory !== "All") params.set("category", selectedCategory);
+      if (keyword.trim()) params.set("search", keyword.trim());
+      const query = params.toString();
+      const path = query ? `/api/services?${query}` : "/api/services";
 
+      setLoading(true);
+      setError(null);
+      apiFetch<Service[]>(path)
+        .then((data) => {
+          if (active) setServices(data);
+        })
+        .catch((caught: unknown) => {
+          if (active) {
+            setError(caught instanceof Error ? caught.message : "Could not load service categories.");
+            setServices([]);
+          }
+        })
+        .finally(() => {
+          if (active) setLoading(false);
+        });
+    }, 200);
     return () => {
       active = false;
+      clearTimeout(timer);
     };
-  }, []);
+  }, [keyword, selectedCategory]);
+
+  const sortedServices = React.useMemo(() => {
+    if (priceOrder === "recommended") return services;
+    return [...services].sort((first, second) =>
+      priceOrder === "ascending"
+        ? first.price - second.price
+        : second.price - first.price,
+    );
+  }, [priceOrder, services]);
 
   const categories = React.useMemo(() => {
     const grouped = new Map<string, Service[]>();
-    for (const service of services) {
+    for (const service of sortedServices) {
       const current = grouped.get(service.category) ?? [];
       current.push(service);
       grouped.set(service.category, current);
     }
     return [...grouped.entries()].sort(([first], [second]) => first.localeCompare(second));
-  }, [services]);
+  }, [sortedServices]);
 
   return (
     <section className="mt-20" aria-labelledby="services-by-category">
@@ -59,6 +96,80 @@ export function CategoryServicesSection({
           Find the right team by exploring the services currently listed on MatriMap.
         </p>
       </div>
+
+      <div id="interest-search" className="mb-8 grid gap-4 rounded-2xl border border-border bg-card/60 p-4 sm:grid-cols-2 lg:grid-cols-[1fr_1.5fr_1fr]">
+        <div className="grid gap-2">
+          <label htmlFor="service-category" className="text-sm font-medium">
+            Category
+          </label>
+          <select
+            id="service-category"
+            value={selectedCategory}
+            onChange={(event) => setSelectedCategory(event.target.value)}
+            className="border-input bg-background flex h-10 w-full rounded-md border px-3 py-2 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+          >
+            {CATEGORIES.map((category) => (
+              <option key={category} value={category}>
+                {category === "All" ? "All categories" : category}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="grid gap-2">
+          <label htmlFor="service-keyword" className="text-sm font-medium">
+            Keyword
+          </label>
+          <div className="relative">
+            <Search className="absolute left-3 top-3 size-4 text-muted-foreground" />
+            <Input
+              id="service-keyword"
+              type="search"
+              value={keyword}
+              onChange={(event) => setKeyword(event.target.value)}
+              placeholder="Search title, description, location, or vendor"
+              className="pr-10 pl-9"
+            />
+            {keyword && (
+              <button
+                type="button"
+                aria-label="Clear keyword"
+                onClick={() => setKeyword("")}
+                className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+              >
+                <X className="size-4" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="grid gap-2">
+          <label htmlFor="service-price-order" className="text-sm font-medium">
+            Sort by price
+          </label>
+          <select
+            id="service-price-order"
+            value={priceOrder}
+            onChange={(event) => {
+              const value = event.target.value;
+              if (value === "recommended" || value === "ascending" || value === "descending") {
+                setPriceOrder(value);
+              }
+            }}
+            className="border-input bg-background flex h-10 w-full rounded-md border px-3 py-2 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+          >
+            <option value="recommended">Recommended</option>
+            <option value="ascending">Price: low to high</option>
+            <option value="descending">Price: high to low</option>
+          </select>
+        </div>
+      </div>
+
+      {keyword.trim() && !loading && !error && (
+        <p className="mb-5 text-sm text-muted-foreground" aria-live="polite">
+          {services.length} {services.length === 1 ? "match" : "matches"} for “{keyword.trim()}”
+        </p>
+      )}
 
       {error ? (
         <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
@@ -85,7 +196,10 @@ export function CategoryServicesSection({
                 </div>
                 <button
                   type="button"
-                  onClick={() => onSelectCategory(category)}
+                  onClick={() => {
+                    setSelectedCategory(category);
+                    document.getElementById("interest-search")?.scrollIntoView({ behavior: "smooth" });
+                  }}
                   className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-2")}
                 >
                   Browse category <ArrowRight className="size-4" />

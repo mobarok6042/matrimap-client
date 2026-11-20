@@ -32,8 +32,13 @@ the Next.js origin (`http://localhost:3000`) and are proxied to Express by
 | `/customer`, `/vendor` | Role-based landing pages after sign-up |
 | `/api/auth/[...all]` | Proxy forwarding Better Auth requests to Express |
 | `/profiles` | Public profile list from the API |
-| `/dashboard` | Customer booking history, vendor requests, or admin service/user management |
+| `/dashboard` | Customer booking history, vendor requests and plan management, or admin service/user/payment management |
 | `/checkout/success`, `/checkout/cancel` | Stripe return pages |
+
+Vendor plans are Free (3 services), Basic (10 services, USD 11.11 one-time),
+and Max (25 services, USD 19.99 one-time). The vendor dashboard provides
+checkout and cancellation controls; cancellation removes stored plan payments
+but does not issue a refund.
 
 ## UI setup
 

@@ -79,6 +79,7 @@ export function SiteHeader() {
 
   const displayName = session?.user?.name || session?.user?.email?.split("@")[0] || "User";
   const isVendor = (session?.user as { role?: string } | undefined)?.role === "vendor";
+  const isHome = pathname === "/";
 
   const activeNavLinks = isVendor
     ? [
@@ -89,8 +90,22 @@ export function SiteHeader() {
     : navLinks;
 
   return (
-    <header className="sticky top-4 z-50 mx-auto mt-4 w-[calc(100%-2rem)] max-w-6xl">
-      <div className="relative flex h-16 items-center justify-between rounded-2xl border border-border/70 bg-transparent px-3 sm:px-5">
+    <header
+      className={cn(
+        "z-50 mx-auto w-[calc(100%-2rem)] max-w-6xl",
+        isHome
+          ? "fixed left-1/2 top-4 -translate-x-1/2"
+          : "sticky top-4 mt-4",
+      )}
+    >
+      <div
+        className={cn(
+          "relative flex h-16 items-center justify-between rounded-2xl px-3 shadow-lg shadow-foreground/10 backdrop-blur-2xl backdrop-saturate-150 sm:px-5",
+          isHome
+            ? "border border-white/25 bg-primary/10"
+            : "border border-border/70 bg-background/75",
+        )}
+      >
         {/* Logo — left */}
         <Link href="/" onClick={closeMenu} aria-label="MatriMap home" className="flex shrink-0 items-center">
           <Image
@@ -168,7 +183,7 @@ export function SiteHeader() {
                     : "invisible -translate-y-1 opacity-0 pointer-events-none",
                 )}
               >
-                <div className="overflow-hidden rounded-2xl border border-border bg-popover p-1.5 shadow-xl">
+                <div className="overflow-hidden rounded-2xl border border-border/70 bg-popover/85 p-1.5 shadow-xl backdrop-blur-xl">
                   <div className="flex items-center gap-3 border-b border-foreground/10 px-3 py-2.5">
                     {avatarUrl && !imageError ? (
                       <img
@@ -259,7 +274,7 @@ export function SiteHeader() {
 
         {/* Dropdown panel (mobile / tablet) */}
         {menuOpen && (
-          <div className="absolute inset-x-0 top-[calc(100%+0.5rem)] rounded-2xl border border-border bg-popover p-3 shadow-2xl lg:hidden">
+          <div className="absolute inset-x-0 top-[calc(100%+0.5rem)] rounded-2xl border border-border/70 bg-popover/85 p-3 shadow-2xl backdrop-blur-xl lg:hidden">
             <nav className="flex flex-col">
               {activeNavLinks.map((link) => (
                 <Link
