@@ -16,6 +16,12 @@ const navLinks = [
   { href: "/services", label: "Browse services" },
 ];
 
+// Video background source – placed alongside the Next.js build output.
+// Make sure the file is added to the repo or available at this path.
+const VIDEO_SRC = process.env.NEXT_PUBLIC_VIDEO_BG
+  ? `/${process.env.NEXT_PUBLIC_VIDEO_BG}`
+  : "/banner-video.mp4";
+
 export function SiteHeader() {
   const pathname = usePathname();
   const { data: session } = useSession();
@@ -86,7 +92,22 @@ export function SiteHeader() {
   ];
 
   return (
-    <header className="sticky top-4 z-50 mx-auto mt-4 w-[calc(100%-2rem)] max-w-6xl">
+    <header
+      className="sticky top-4 z-50 mx-auto mt-4 w-[calc(100%-2rem)] max-w-6xl bg-black/40"
+    >
+      {/* Video background — full width/height behind the header */}
+      <div
+        className="absolute inset-0 -z-10 overflow-hidden w-full h-full"
+      >
+        <video
+          autoPlay
+          loop
+          playsInline
+          className="w-full h-full object-cover"
+          src={VIDEO_SRC}
+        />
+      </div>
+
       <div className="relative flex h-16 items-center justify-between rounded-2xl border border-white/30 bg-white/40 px-3 shadow-[0_10px_40px_-12px_rgba(0,0,0,0.35)] backdrop-blur-xl dark:border-white/10 dark:bg-black/30 sm:px-5">
         {/* Logo — left */}
         <Link href="/" onClick={closeMenu} aria-label="MatriMap home" className="flex shrink-0 items-center">
@@ -131,7 +152,7 @@ export function SiteHeader() {
                 onClick={() => setIsHovered((prev) => !prev)}
                 aria-haspopup="true"
                 aria-expanded={isHovered}
-                className="flex items-center gap-2.5 rounded-full border border-foreground/15 bg-white/60 py-1 pl-3.5 pr-2 text-sm backdrop-blur-md transition-all hover:bg-white/90 hover:shadow-sm dark:border-white/15 dark:bg-white/10 dark:hover:bg-white/15"
+                className="flex items-center gap-2.5 rounded-full border border-foreground/15 bg-white/60 py-1 pl-3.5 pr-2 text-sm backdrop-blur-md transition-all hover:bg-white/90 hover:shadow-sm dark:border-white/15 dark:bg-white/10 dark:hover:bg-white-white/15"
               >
                 <span className="text-sm font-medium text-foreground">
                   Welcome, <span className="font-semibold">{displayName}</span>
@@ -199,7 +220,7 @@ export function SiteHeader() {
                       onClick={() => setIsHovered(false)}
                       className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-foreground/5"
                     >
-                      <User className="size-4 text-muted-foreground" />
+                      <User className="size-4" />
                       Profile
                     </Link>
                     {isVendor && (
@@ -312,7 +333,7 @@ export function SiteHeader() {
                   <Link
                     href="/profile"
                     onClick={closeMenu}
-                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-full justify-start gap-2")}
+                    className="outline sm w-full justify-start gap-2 border-foreground/30 text-primary hover:bg-primary/10"
                   >
                     <User className="size-4" />
                     Profile
@@ -320,7 +341,7 @@ export function SiteHeader() {
                   {isVendor && (
                     <Link
                       href="/services/add"
-                      onClick={closeMenu}
+                      onClick={() => setIsHovered(false)}
                       className={cn(
                         buttonVariants({ variant: "outline", size: "sm" }),
                         "w-full justify-start gap-2 border-primary/30 text-primary hover:bg-primary/10",
@@ -368,3 +389,4 @@ export function SiteHeader() {
     </header>
   );
 }
+

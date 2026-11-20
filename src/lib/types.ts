@@ -31,3 +31,21 @@ export interface Service {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface Booking {
+  _id: string;
+  serviceId: string;
+  serviceTitle: string;
+  vendorId: string;
+  vendorName: string;
+  vendorEmail: string;
+  customerId: string;
+  customerName: string;
+  customerEmail: string;
+  eventDate: string;
+  eventLocation: string;
+  message: string;
+  status: "pending" | "accepted" | "declined";
+  createdAt: string;
+  updatedAt: string;
+}

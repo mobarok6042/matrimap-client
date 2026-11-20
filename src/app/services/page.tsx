@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import {
   Building2,
@@ -11,6 +12,7 @@ import {
   DollarSign,
   Heart,
   Loader2,
+  Eye,
   Mail,
   MapPin,
   Phone,
@@ -44,6 +46,7 @@ const CATEGORIES = [
 
 export default function ServicesPage() {
   const { data: session } = useSession();
+  const router = useRouter();
   const [services, setServices] = React.useState<Service[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [selectedCategory, setSelectedCategory] = React.useState("All");
@@ -267,48 +270,54 @@ export default function ServicesPage() {
               </div>
 
               {/* Card Body */}
-              <CardContent className="flex flex-1 flex-col p-5">
-                <div className="mb-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <MapPin className="size-3.5 text-primary shrink-0" />
-                  <span className="truncate">{service.location}</span>
+              <CardContent className="flex flex-1 flex-col gap-3 p-5">
+                {/* Category */}
+                <div>
+                  <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary">
+                    {service.category}
+                  </span>
                 </div>
 
+                {/* Service Name */}
                 <h3 className="line-clamp-2 text-lg font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">
                   {service.title}
                 </h3>
 
-                <p className="mt-2 line-clamp-3 text-sm text-muted-foreground/90">
-                  {service.description}
-                </p>
+                {/* Service Image (rendered at the top of the card) */}
+                {/* Location */}
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <MapPin className="size-3.5 shrink-0 text-primary" />
+                  <span className="truncate">{service.location}</span>
+                </div>
 
-                <div className="mt-auto pt-4">
-                  <div className="flex items-baseline justify-between border-t border-foreground/10 pt-3">
-                    <div>
-                      <span className="text-xs text-muted-foreground">Starting from</span>
-                      <p className="text-lg font-bold text-primary">
-                        ৳ {service.price.toLocaleString()}{" "}
-                        <span className="text-xs font-normal text-muted-foreground">
-                          / {service.pricingUnit || "event"}
-                        </span>
-                      </p>
-                    </div>
-
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setActiveContactService(service)}
-                      className="gap-1.5 border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"
-                    >
-                      <Phone className="size-3.5" /> Contact
-                    </Button>
-                  </div>
-
-                  <div className="mt-2.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                    <User className="size-3 text-muted-foreground" />
-                    <span>Offered by: </span>
-                    <strong className="text-foreground truncate">{service.vendorName}</strong>
+                {/* Price */}
+                <div className="flex items-baseline justify-between border-t border-foreground/10 pt-3">
+                  <div>
+                    <span className="text-xs text-muted-foreground">Starting from</span>
+                    <p className="text-lg font-bold text-primary">
+                      ৳ {service.price.toLocaleString()}{" "}
+                      <span className="text-xs font-normal text-muted-foreground">
+                        / {service.pricingUnit || "event"}
+                      </span>
+                    </p>
                   </div>
                 </div>
+
+                {/* Vendor Information */}
+                <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                  <User className="size-3 shrink-0 text-muted-foreground" />
+                  <span>Offered by: </span>
+                  <strong className="truncate text-foreground">{service.vendorName}</strong>
+                </div>
+
+                {/* View Details Button */}
+                <Button
+                  size="sm"
+                  onClick={() => router.push(`/services/${service._id}`)}
+                  className="mt-auto w-full gap-1.5 border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"
+                >
+                  <Eye className="size-3.5" /> View Details
+                </Button>
               </CardContent>
             </Card>
           ))}
