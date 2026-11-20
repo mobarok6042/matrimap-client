@@ -20,7 +20,10 @@ export function HomeServices() {
     apiFetch<Service[]>("/api/services")
       .then((data) => {
         if (active) {
-          setServices(data.filter((service) => service.isAvailable !== false).slice(0, 6));
+          const prioritized = [...data].sort(
+            (a, b) => Number(b.isAvailable !== false) - Number(a.isAvailable !== false),
+          );
+          setServices(prioritized.slice(0, 6));
         }
       })
       .catch((caught: unknown) => {
@@ -98,6 +101,11 @@ export function HomeServices() {
                     <Star className="size-3 fill-secondary text-secondary" />
                     {service.rating ?? 5}
                   </span>
+                  {service.isAvailable === false && (
+                    <span className="absolute bottom-3 left-3 rounded-full bg-background/95 px-2.5 py-1 text-xs font-semibold text-muted-foreground">
+                      Inactive
+                    </span>
+                  )}
                 </div>
 
                 <CardContent className="flex flex-1 flex-col gap-3 p-5">

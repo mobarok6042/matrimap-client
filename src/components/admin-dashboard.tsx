@@ -7,6 +7,7 @@ import {
   Clock3,
   Loader2,
   MapPin,
+  Power,
   ShieldCheck,
   UserRound,
   XCircle,
@@ -38,7 +39,7 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
   React.useEffect(() => {
     let active = true;
 
-    apiFetch<Service[]>("/api/admin/services/pending")
+    apiFetch<Service[]>("/api/admin/services")
       .then((data) => {
         if (active) setServices(data);
       })
@@ -73,8 +74,32 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
     setServiceAction(id + decision);
     setServicesError(null);
     try {
-      await apiFetch<Service>(`/api/admin/services/${id}/${decision}`, { method: "POST" });
-      setServices((current) => current.filter((service) => service._id !== id));
+      const updated = await apiFetch<Service>(`/api/admin/services/${id}/${decision}`, {
+        method: "POST",
+      });
+      setServices((current) =>
+        current.map((service) => (service._id === id ? updated : service))
+      );
+    } catch (error: unknown) {
+      setServicesError(error instanceof Error ? error.message : "Could not update service.");
+    } finally {
+      setServiceAction(null);
+    }
+  }
+
+  async function toggleServiceAvailability(service: Service) {
+    const isAvailable = service.isAvailable === false;
+    const action = isAvailable ? "activate" : "deactivate";
+    setServiceAction(service._id + action);
+    setServicesError(null);
+    try {
+      const updated = await apiFetch<Service>(
+        `/api/admin/services/${service._id}/availability`,
+        { method: "PATCH", body: JSON.stringify({ isAvailable }) },
+      );
+      setServices((current) =>
+        current.map((item) => (item._id === updated._id ? updated : item))
+      );
     } catch (error: unknown) {
       setServicesError(error instanceof Error ? error.message : "Could not update service.");
     } finally {
@@ -112,10 +137,10 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
         <Card className="border-border bg-card/70">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Clock3 className="size-5 text-primary" /> Services awaiting approval
+              <Clock3 className="size-5 text-primary" /> Manage services
             </CardTitle>
             <CardDescription>
-              New and previously listed services remain hidden until approved.
+              Review new listings and activate or deactivate approved services.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -125,75 +150,110 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
                 <Loader2 className="size-4 animate-spin" /> Loading services…
               </p>
             ) : services.length === 0 ? (
-              <p className="py-4 text-sm text-muted-foreground">No services need review.</p>
+              <p className="py-4 text-sm text-muted-foreground">No services have been added yet.</p>
             ) : (
-              services.map((service) => (
-                <article
-                  key={service._id}
-                  className="flex flex-col gap-4 rounded-xl border border-border bg-background/60 p-4 sm:flex-row"
-                >
-                  {service.image && (
-                    <img
-                      src={service.image}
-                      alt=""
-                      className="aspect-video w-full rounded-lg object-cover sm:w-44"
-                    />
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+              services.map((service) => {
+                const status = service.approvalStatus ?? "pending";
+
+                return (
+                  <article
+                    key={service._id}
+                    className="flex flex-col gap-4 rounded-xl border border-border bg-background/60 p-4 sm:flex-row"
+                  >
+                    {service.image && (
+                      <img
+                        src={service.image}
+                        alt=""
+                        className="aspect-video w-full rounded-lg object-cover sm:w-44"
+                      />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-2 flex flex-wrap items-center gap-2">
+                        <span className="text-xs font-semibold uppercase tracking-wide text-primary">
                           {service.category}
-                        </p>
-                        <h2 className="mt-1 text-lg font-semibold">{service.title}</h2>
+                        </span>
+                        <span
+                          className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                            status === "approved"
+                              ? "bg-primary/10 text-primary"
+                              : status === "declined"
+                                ? "bg-destructive/10 text-destructive"
+                                : "bg-secondary/20 text-foreground"
+                          }`}
+                        >
+                          {status === "approved" ? "Approved" : status === "declined" ? "Declined" : "Pending"}
+                        </span>
+                        {status === "approved" && (
+                          <span className="rounded-full bg-secondary/20 px-2.5 py-1 text-xs font-medium">
+                            {service.isAvailable === false ? "Inactive" : "Active"}
+                          </span>
+                        )}
                       </div>
-                      <span className="rounded-full bg-secondary/20 px-2.5 py-1 text-xs font-medium">
-                        Pending
-                      </span>
-                    </div>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Vendor: {service.vendorName} · ৳ {service.price.toLocaleString()} /{" "}
-                      {service.pricingUnit || "event"}
-                    </p>
-                    <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
-                      {service.description}
-                    </p>
-                    <p className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
-                      <MapPin className="size-3.5" /> {service.location}
-                    </p>
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="secondary"
-                        disabled={serviceAction !== null}
-                        onClick={() => reviewService(service._id, "approve")}
-                      >
-                        {serviceAction === service._id + "approve" ? (
-                          <Loader2 className="size-4 animate-spin" />
-                        ) : (
-                          <CheckCircle2 className="size-4" />
+                      <h2 className="text-lg font-semibold">{service.title}</h2>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Vendor: {service.vendorName} · ৳ {service.price.toLocaleString()} /{" "}
+                        {service.pricingUnit || "event"}
+                      </p>
+                      <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
+                        {service.description}
+                      </p>
+                      <p className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
+                        <MapPin className="size-3.5" /> {service.location}
+                      </p>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {status === "pending" && (
+                          <>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="secondary"
+                              disabled={serviceAction !== null}
+                              onClick={() => reviewService(service._id, "approve")}
+                            >
+                              {serviceAction === service._id + "approve" ? (
+                                <Loader2 className="size-4 animate-spin" />
+                              ) : (
+                                <CheckCircle2 className="size-4" />
+                              )}
+                              Approve
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="destructive"
+                              disabled={serviceAction !== null}
+                              onClick={() => reviewService(service._id, "decline")}
+                            >
+                              {serviceAction === service._id + "decline" ? (
+                                <Loader2 className="size-4 animate-spin" />
+                              ) : (
+                                <XCircle className="size-4" />
+                              )}
+                              Decline
+                            </Button>
+                          </>
                         )}
-                        Approve
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="destructive"
-                        disabled={serviceAction !== null}
-                        onClick={() => reviewService(service._id, "decline")}
-                      >
-                        {serviceAction === service._id + "decline" ? (
-                          <Loader2 className="size-4 animate-spin" />
-                        ) : (
-                          <XCircle className="size-4" />
+                        {status === "approved" && (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant={service.isAvailable === false ? "secondary" : "outline"}
+                            disabled={serviceAction !== null}
+                            onClick={() => toggleServiceAvailability(service)}
+                          >
+                            {serviceAction === service._id + (service.isAvailable === false ? "activate" : "deactivate") ? (
+                              <Loader2 className="size-4 animate-spin" />
+                            ) : (
+                              <Power className="size-4" />
+                            )}
+                            {service.isAvailable === false ? "Activate" : "Deactivate"}
+                          </Button>
                         )}
-                        Decline
-                      </Button>
+                      </div>
                     </div>
-                  </div>
-                </article>
-              ))
+                  </article>
+                );
+              })
             )}
           </CardContent>
         </Card>

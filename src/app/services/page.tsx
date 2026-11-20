@@ -277,6 +277,11 @@ export default function ServicesPage() {
                     {service.category}
                   </span>
                 </div>
+                {service.isAvailable === false && (
+                  <span className="w-fit rounded-full bg-secondary/20 px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                    Inactive
+                  </span>
+                )}
 
                 {/* Service Name */}
                 <h3 className="line-clamp-2 text-lg font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">

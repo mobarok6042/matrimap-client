@@ -169,6 +169,11 @@ export default function ServiceDetailsPage() {
                 </p>
               </div>
             </div>
+            {service.isAvailable === false && (
+              <p className="rounded-lg border border-secondary/50 bg-secondary/15 px-4 py-3 text-sm text-muted-foreground">
+                This service is currently inactive and cannot accept booking requests.
+              </p>
+            )}
 
             {/* Vendor Information */}
             <Card>
@@ -202,7 +207,7 @@ export default function ServiceDetailsPage() {
               >
                 <Mail className="size-4" /> Send Email
               </a>
-              {session && (
+              {session && service.isAvailable !== false && (
                 <button
                   type="button"
                   onClick={() => {
