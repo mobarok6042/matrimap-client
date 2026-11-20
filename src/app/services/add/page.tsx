@@ -200,7 +200,7 @@ export default function AddServicePage() {
 
       setSuccess(true);
       setTimeout(() => {
-        router.push("/services");
+        router.push("/dashboard");
         router.refresh();
       }, 1500);
     } catch (caught) {
@@ -303,17 +303,17 @@ export default function AddServicePage() {
         </div>
 
         {success ? (
-          <Card className="border-emerald-500/30 bg-emerald-50/50 p-8 text-center dark:bg-emerald-950/20">
-            <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+          <Card className="border-secondary/50 bg-secondary/10 p-8 text-center">
+            <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-secondary/20 text-foreground">
               <CheckCircle2 className="size-8" />
             </div>
-            <h2 className="text-2xl font-bold text-foreground">Service Published Successfully!</h2>
+            <h2 className="text-2xl font-bold text-foreground">Service Submitted for Review</h2>
             <p className="mt-2 text-muted-foreground">
-              Your service is now stored in the MongoDB Atlas database and live for couples and customers to explore.
+              Your listing will appear in the services catalog after an administrator approves it.
             </p>
             <div className="mt-6 flex justify-center gap-3">
-              <Link href="/services" className={cn(buttonVariants())}>
-                View Services Catalog
+              <Link href="/dashboard" className={cn(buttonVariants())}>
+                Go to Dashboard
               </Link>
             </div>
           </Card>
@@ -496,7 +496,7 @@ export default function AddServicePage() {
                         alt="Uploaded Service Cover"
                         className="h-56 w-full object-cover"
                       />
-                      <div className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-full bg-black/75 px-3 py-1 text-xs font-medium text-emerald-400 backdrop-blur-md">
+                      <div className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-full bg-primary/85 px-3 py-1 text-xs font-medium text-secondary backdrop-blur-md">
                         <CheckCircle2 className="size-3.5" /> Uploaded to ImgBB
                       </div>
                       <button

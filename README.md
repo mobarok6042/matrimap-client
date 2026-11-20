@@ -26,13 +26,13 @@ the Next.js origin (`http://localhost:3000`) and are proxied to Express by
 
 | Route | Purpose |
 | --- | --- |
-| `/` | Animated landing page (Motion + HeroUI `Button`/`Chip`) |
+| `/` | Animated hero with live featured service cards |
 | `/auth` | Email + Google sign-in/sign-up with role selection and password rules |
-| `/complete-profile` | Google users pick Vendor/Customer role, then redirect |
-| `/customer`, `/vendor` | Role-based landing pages after sign-up/sign-in |
+| `/complete-profile` | New Google users pick Vendor/Customer role, then continue to the dashboard |
+| `/customer`, `/vendor` | Role-based landing pages after sign-up |
 | `/api/auth/[...all]` | Proxy forwarding Better Auth requests to Express |
 | `/profiles` | Public profile list from the API |
-| `/dashboard` | Session, profile editor, ImgBB upload, Stripe Checkout button |
+| `/dashboard` | Customer booking history, vendor requests, or admin service/user management |
 | `/checkout/success`, `/checkout/cancel` | Stripe return pages |
 
 ## UI setup
@@ -52,8 +52,7 @@ the Next.js origin (`http://localhost:3000`) and are proxied to Express by
 ## Shared code
 
 - `src/lib/auth-client.ts` — Better Auth client pointed at `NEXT_PUBLIC_SERVER_URL`
-  (the Next.js proxy), always sending credentials. Also exports
-  `redirectPathForRole()` for role-based redirects.
+  (the Next.js proxy), always sending credentials.
 - `src/lib/api.ts` — small `apiFetch<T>()` helper for Express endpoints
   (handles JSON vs `FormData` headers and throws `ApiError`).
 - `src/lib/types.ts` — shared `Profile` shape.

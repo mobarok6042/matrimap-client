@@ -177,7 +177,7 @@ export default function ServicesPage() {
                   "rounded-full px-3.5 py-1.5 text-xs font-medium transition-all whitespace-nowrap",
                   isSelected
                     ? "bg-primary text-primary-foreground shadow-sm"
-                    : "border border-foreground/15 bg-white/50 text-foreground hover:bg-white/80 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10",
+                    : "border border-border bg-card/60 text-foreground hover:bg-accent",
                 )}
               >
                 {cat}
@@ -243,7 +243,7 @@ export default function ServicesPage() {
           {services.map((service) => (
             <Card
               key={service._id}
-              className="group flex h-full flex-col overflow-hidden border border-foreground/10 bg-white/70 shadow-sm transition-all hover:border-primary/40 hover:shadow-lg dark:border-white/10 dark:bg-zinc-900/70"
+              className="group flex h-full flex-col overflow-hidden border border-border bg-card/80 shadow-sm transition-all hover:border-primary/40 hover:shadow-lg"
             >
               {/* Service Cover Image */}
               <div className="relative aspect-video w-full overflow-hidden bg-muted">
@@ -259,12 +259,12 @@ export default function ServicesPage() {
                   </div>
                 )}
                 <div className="absolute left-3 top-3">
-                  <span className="rounded-full border border-black/20 bg-black/60 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-md">
+                  <span className="rounded-full border border-primary/30 bg-primary/85 px-2.5 py-1 text-[11px] font-medium text-primary-foreground backdrop-blur-md">
                     {service.category}
                   </span>
                 </div>
-                <div className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-xs font-semibold text-zinc-900 shadow-sm backdrop-blur-md">
-                  <Star className="size-3 fill-amber-400 text-amber-400" />
+                <div className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-background/95 px-2 py-0.5 text-xs font-semibold text-foreground shadow-sm backdrop-blur-md">
+                  <Star className="size-3 fill-secondary text-secondary" />
                   {service.rating ?? 5.0}
                 </div>
               </div>
@@ -330,7 +330,7 @@ export default function ServicesPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-md overflow-hidden rounded-2xl border border-white/20 bg-white p-6 shadow-2xl dark:border-white/10 dark:bg-zinc-900"
+            className="w-full max-w-md overflow-hidden rounded-2xl border border-border bg-popover p-6 shadow-2xl"
           >
             <div className="flex items-start justify-between">
               <div>

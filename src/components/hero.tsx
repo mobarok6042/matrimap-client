@@ -28,10 +28,10 @@ export function Hero() {
       </video>
 
       {/* Dark overlay for contrast and legibility */}
-      <div className="absolute inset-0 bg-black/55 backdrop-blur-[0.5px]" />
+      <div className="absolute inset-0 bg-primary/55 backdrop-blur-[0.5px]" />
 
       {/* Gradient vignette blending seamlessly into page theme */}
-      <div className="absolute inset-0 bg-gradient-to-t from-background via-black/40 to-black/60" />
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-primary/40 to-primary/60" />
 
       {/* Content */}
       <motion.div
@@ -42,8 +42,8 @@ export function Hero() {
       >
         {/* Subtle pill tag */}
         <motion.div variants={fadeUp} transition={{ duration: 0.5 }}>
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-medium text-white shadow-sm backdrop-blur-md">
-            <Sparkles className="size-3.5 text-amber-300" />
+          <div className="inline-flex items-center gap-2 rounded-full border border-secondary/40 bg-primary/30 px-4 py-1.5 text-xs font-medium text-background shadow-sm backdrop-blur-md">
+            <Sparkles className="size-3.5 text-secondary" />
             <span>Premium Matrimony & Wedding Planning</span>
           </div>
         </motion.div>
@@ -52,7 +52,7 @@ export function Hero() {
         <motion.h1
           variants={fadeUp}
           transition={{ duration: 0.5 }}
-          className="max-w-4xl text-balance text-4xl font-extrabold tracking-tight text-white drop-shadow-md sm:text-6xl md:text-7xl"
+          className="max-w-4xl text-balance text-4xl font-extrabold tracking-tight text-background drop-shadow-md sm:text-6xl md:text-7xl"
         >
           Find Your Perfect Match & Plan Your Dream Wedding
         </motion.h1>
@@ -61,7 +61,7 @@ export function Hero() {
         <motion.p
           variants={fadeUp}
           transition={{ duration: 0.5 }}
-          className="max-w-2xl text-balance text-base font-normal text-white/90 drop-shadow-sm sm:text-lg md:text-xl"
+          className="max-w-2xl text-balance text-base font-normal text-background/90 drop-shadow-sm sm:text-lg md:text-xl"
         >
           Discover top-rated wedding vendors, bridal services, venues, and verified
           matrimonial connections mapped with care for your special day.
@@ -89,16 +89,16 @@ export function Hero() {
         <motion.div
           variants={fadeUp}
           transition={{ duration: 0.5 }}
-          className="mt-6 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs font-medium text-white/80 sm:text-sm"
+          className="mt-6 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs font-medium text-background/80 sm:text-sm"
         >
           <span className="flex items-center gap-2">
-            <ShieldCheck className="size-4 text-emerald-400" /> Verified Profiles
+            <ShieldCheck className="size-4 text-secondary" /> Verified Profiles
           </span>
           <span className="flex items-center gap-2">
-            <HeartHandshake className="size-4 text-rose-300" /> Trusted Vendors
+            <HeartHandshake className="size-4 text-secondary" /> Trusted Vendors
           </span>
           <span className="flex items-center gap-2">
-            <Sparkles className="size-4 text-amber-300" /> Seamless Planning
+            <Sparkles className="size-4 text-secondary" /> Seamless Planning
           </span>
         </motion.div>
       </motion.div>

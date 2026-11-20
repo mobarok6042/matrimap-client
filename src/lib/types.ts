@@ -26,6 +26,7 @@ export interface Service {
   vendorId: string;
   vendorName: string;
   vendorEmail: string;
+  approvalStatus?: "pending" | "approved" | "declined";
   rating?: number;
   isAvailable?: boolean;
   createdAt: string;

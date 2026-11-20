@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { authClient, redirectPathForRole, useSession } from "@/lib/auth-client";
+import { authClient, useSession } from "@/lib/auth-client";
 import type { UserRole } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 
@@ -20,8 +20,8 @@ export default function CompleteProfilePage() {
 
   React.useEffect(() => {
     if (isPending || !session) return;
-    if (role === "customer" || role === "vendor") {
-      router.replace(redirectPathForRole(role));
+    if (role === "customer" || role === "vendor" || role === "admin") {
+      router.replace("/dashboard");
     }
   }, [isPending, session, role, router]);
 
@@ -39,7 +39,7 @@ export default function CompleteProfilePage() {
       }
 
       await refetch();
-      router.replace(`/${nextRole}?welcome=1`);
+      router.replace("/dashboard");
       router.refresh();
     } catch (caught) {
       setError((caught as Error).message ?? "Could not save your role.");
@@ -74,7 +74,7 @@ export default function CompleteProfilePage() {
     );
   }
 
-  if (role === "customer" || role === "vendor") {
+  if (role === "customer" || role === "vendor" || role === "admin") {
     return (
       <main className="flex min-h-[calc(100vh-8rem)] items-center justify-center text-muted-foreground">
         <Loader2 className="mr-2 size-5 animate-spin" /> Taking you to your dashboard…

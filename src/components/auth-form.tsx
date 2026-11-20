@@ -4,8 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Check, Loader2, X } from "lucide-react";
 import { apiFetch } from "@/lib/api";
-import { authClient, redirectPathForRole, signIn, signUp } from "@/lib/auth-client";
-import type { UserRole } from "@/lib/auth-client";
+import { authClient, signIn, signUp } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -130,9 +129,7 @@ export function AuthForm({
         return;
       }
 
-      const session = await authClient.getSession();
-      const userRole = (session.data?.user as { role?: UserRole } | undefined)?.role;
-      router.push(redirectPathForRole(userRole));
+      router.push("/dashboard");
       router.refresh();
     } catch (caught) {
       setError((caught as Error).message ?? "Something went wrong. Please try again.");
@@ -239,13 +236,13 @@ export function AuthForm({
             />
             {mode === "sign-up" && (
               <ul className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                <li className={passwordChecks.length ? "text-emerald-600" : ""}>
+                <li className={passwordChecks.length ? "text-primary" : ""}>
                   <RuleIcon ok={passwordChecks.length} /> At least 6 characters
                 </li>
-                <li className={passwordChecks.uppercase ? "text-emerald-600" : ""}>
+                <li className={passwordChecks.uppercase ? "text-primary" : ""}>
                   <RuleIcon ok={passwordChecks.uppercase} /> One uppercase letter
                 </li>
-                <li className={passwordChecks.lowercase ? "text-emerald-600" : ""}>
+                <li className={passwordChecks.lowercase ? "text-primary" : ""}>
                   <RuleIcon ok={passwordChecks.lowercase} /> One lowercase letter
                 </li>
               </ul>
@@ -272,7 +269,7 @@ export function AuthForm({
             </p>
           )}
           {notice && (
-            <p role="status" className="rounded-md bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-400">
+            <p role="status" className="rounded-md bg-secondary/15 px-3 py-2 text-sm text-foreground">
               {notice}
             </p>
           )}

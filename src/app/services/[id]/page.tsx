@@ -108,7 +108,7 @@ export default function ServiceDetailsPage() {
           <ArrowLeft className="size-4" /> Back to services
         </Link>
 
-        <div className="overflow-hidden rounded-2xl border border-foreground/10 bg-white shadow-xl dark:border-white/10 dark:bg-zinc-900">
+        <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-xl">
           {/* Service Image */}
           {displayImage ? (
             <div className="relative aspect-video w-full overflow-hidden bg-muted">
@@ -118,12 +118,12 @@ export default function ServiceDetailsPage() {
                 className="size-full object-cover"
               />
               <div className="absolute left-3 top-3">
-                <span className="rounded-full border border-black/20 bg-black/60 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-md">
+                <span className="rounded-full border border-primary/30 bg-primary/85 px-2.5 py-1 text-[11px] font-medium text-primary-foreground backdrop-blur-md">
                   {service.category}
                 </span>
               </div>
-              <div className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-xs font-semibold text-zinc-900 shadow-sm backdrop-blur-md">
-                <Star className="size-3 fill-amber-400 text-amber-400" />
+              <div className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-background/95 px-2 py-0.5 text-xs font-semibold text-foreground shadow-sm backdrop-blur-md">
+                <Star className="size-3 fill-secondary text-secondary" />
                 {service.rating ?? 5.0}
               </div>
             </div>
@@ -189,7 +189,7 @@ export default function ServiceDetailsPage() {
               </CardContent>
             </Card>
 
-            {/* Contact actions */}
+            {/* Contact + Book Service actions */}
             <div className="flex flex-col gap-3 sm:flex-row">
               {service.phone && (
                 <a href={`tel:${service.phone}`} className={cn(buttonVariants(), "flex-1 gap-2")}>
@@ -202,7 +202,172 @@ export default function ServiceDetailsPage() {
               >
                 <Mail className="size-4" /> Send Email
               </a>
+              {session && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBookingOpen(true);
+                    setBookingSuccess(false);
+                    setBookingError(null);
+                  }}
+                  className={cn(
+                    buttonVariants({ variant: "default" }),
+                    "flex-1 gap-2"
+                  )}
+                >
+                  <Calendar className="size-4" /> Book Service
+                </button>
+              )}
             </div>
+
+            {/* Booking Form (slide-in) */}
+            {bookingOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="rounded-xl border border-secondary/50 bg-secondary/10 p-5"
+              >
+                <h3 className="text-base font-semibold text-foreground mb-1">Book this Service</h3>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Customer:{" "}
+                  <span className="font-medium">
+                    {session?.user?.name || session?.user?.email}
+                  </span>
+                  {" · "}Vendor:{" "}
+                  <span className="font-medium">{service.vendorName}</span>
+                </p>
+
+                {bookingSuccess ? (
+                  <div className="rounded-lg bg-secondary/15 border border-secondary/50 px-4 py-3 text-sm text-foreground">
+                    ✅ Booking request sent! The vendor will review your request shortly. You can track the status in your{" "}
+                    <Link href="/dashboard" className="underline font-medium">
+                      dashboard
+                    </Link>
+                    .
+                  </div>
+                ) : (
+                  <form
+                    onSubmit={async (e) => {
+                      e.preventDefault();
+                      setBookingSubmitting(true);
+                      setBookingError(null);
+                      try {
+                        await apiFetch<Booking>("/api/bookings", {
+                          method: "POST",
+                          body: JSON.stringify({
+                            serviceId: service._id,
+                            eventDate,
+                            eventLocation,
+                            message,
+                          }),
+                        });
+                        setBookingSuccess(true);
+                        setEventDate("");
+                        setEventLocation("");
+                        setMessage("");
+                      } catch (err: unknown) {
+                        const e = err as { message?: string };
+                        setBookingError(
+                          e?.message || "Failed to send booking request. Please try again."
+                        );
+                      } finally {
+                        setBookingSubmitting(false);
+                      }
+                    }}
+                    className="flex flex-col gap-4"
+                  >
+                    {/* Event Date */}
+                    <div className="flex flex-col gap-1.5">
+                      <label htmlFor="eventDate" className="text-sm font-medium text-foreground">
+                        Event Date <span className="text-destructive">*</span>
+                      </label>
+                      <input
+                        id="eventDate"
+                        type="date"
+                        required
+                        value={eventDate}
+                        onChange={(e) => setEventDate(e.target.value)}
+                        min={new Date().toISOString().split("T")[0]}
+                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] transition-[color,box-shadow]"
+                      />
+                    </div>
+
+                    {/* Event Location */}
+                    <div className="flex flex-col gap-1.5">
+                      <label htmlFor="eventLocation" className="text-sm font-medium text-foreground">
+                        Event Location <span className="text-destructive">*</span>
+                      </label>
+                      <input
+                        id="eventLocation"
+                        type="text"
+                        required
+                        placeholder="e.g. Dhaka Convention Center, Hall 3"
+                        value={eventLocation}
+                        onChange={(e) => setEventLocation(e.target.value)}
+                        maxLength={120}
+                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] transition-[color,box-shadow]"
+                      />
+                    </div>
+
+                    {/* Additional Message */}
+                    <div className="flex flex-col gap-1.5">
+                      <label htmlFor="bookingMessage" className="text-sm font-medium text-foreground">
+                        Additional Message{" "}
+                        <span className="text-muted-foreground font-normal">(optional)</span>
+                      </label>
+                      <textarea
+                        id="bookingMessage"
+                        placeholder="Describe your requirements, guest count, special requests…"
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        maxLength={2000}
+                        rows={3}
+                        className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] transition-[color,box-shadow] resize-none"
+                      />
+                      <p className="text-xs text-muted-foreground text-right">{message.length}/2000</p>
+                    </div>
+
+                    {bookingError && (
+                      <p className="text-sm text-destructive rounded-md bg-destructive/10 px-3 py-2">
+                        {bookingError}
+                      </p>
+                    )}
+
+                    <div className="flex gap-3">
+                      <button
+                        type="submit"
+                        disabled={bookingSubmitting}
+                        className={cn(
+                          buttonVariants(),
+                          "flex-1 gap-2 disabled:opacity-60"
+                        )}
+                      >
+                        {bookingSubmitting ? (
+                          <>
+                            <Loader2 className="size-4 animate-spin" /> Sending…
+                          </>
+                        ) : (
+                          <>
+                            <Calendar className="size-4" /> Confirm Booking
+                          </>
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setBookingOpen(false);
+                          setBookingError(null);
+                        }}
+                        className={cn(buttonVariants({ variant: "outline" }))}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </motion.div>
+            )}
           </CardContent>
         </div>
       </motion.div>

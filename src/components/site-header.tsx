@@ -16,12 +16,6 @@ const navLinks = [
   { href: "/services", label: "Browse services" },
 ];
 
-// Video background source – placed alongside the Next.js build output.
-// Make sure the file is added to the repo or available at this path.
-const VIDEO_SRC = process.env.NEXT_PUBLIC_VIDEO_BG
-  ? `/${process.env.NEXT_PUBLIC_VIDEO_BG}`
-  : "/banner-video.mp4";
-
 export function SiteHeader() {
   const pathname = usePathname();
   const { data: session } = useSession();
@@ -92,23 +86,8 @@ export function SiteHeader() {
   ];
 
   return (
-    <header
-      className="sticky top-4 z-50 mx-auto mt-4 w-[calc(100%-2rem)] max-w-6xl bg-black/40"
-    >
-      {/* Video background — full width/height behind the header */}
-      <div
-        className="absolute inset-0 -z-10 overflow-hidden w-full h-full"
-      >
-        <video
-          autoPlay
-          loop
-          playsInline
-          className="w-full h-full object-cover"
-          src={VIDEO_SRC}
-        />
-      </div>
-
-      <div className="relative flex h-16 items-center justify-between rounded-2xl border border-white/30 bg-white/40 px-3 shadow-[0_10px_40px_-12px_rgba(0,0,0,0.35)] backdrop-blur-xl dark:border-white/10 dark:bg-black/30 sm:px-5">
+    <header className="sticky top-4 z-50 mx-auto mt-4 w-[calc(100%-2rem)] max-w-6xl">
+      <div className="relative flex h-16 items-center justify-between rounded-2xl border border-border/70 bg-transparent px-3 sm:px-5">
         {/* Logo — left */}
         <Link href="/" onClick={closeMenu} aria-label="MatriMap home" className="flex shrink-0 items-center">
           <Image
@@ -152,7 +131,7 @@ export function SiteHeader() {
                 onClick={() => setIsHovered((prev) => !prev)}
                 aria-haspopup="true"
                 aria-expanded={isHovered}
-                className="flex items-center gap-2.5 rounded-full border border-foreground/15 bg-white/60 py-1 pl-3.5 pr-2 text-sm backdrop-blur-md transition-all hover:bg-white/90 hover:shadow-sm dark:border-white/15 dark:bg-white/10 dark:hover:bg-white-white/15"
+                className="flex items-center gap-2.5 rounded-full border border-border bg-transparent py-1 pl-3.5 pr-2 text-sm transition-colors hover:bg-accent"
               >
                 <span className="text-sm font-medium text-foreground">
                   Welcome, <span className="font-semibold">{displayName}</span>
@@ -186,7 +165,7 @@ export function SiteHeader() {
                     : "invisible -translate-y-1 opacity-0 pointer-events-none",
                 )}
               >
-                <div className="overflow-hidden rounded-2xl border border-white/40 bg-white/95 p-1.5 shadow-[0_12px_40px_-10px_rgba(0,0,0,0.2)] backdrop-blur-xl dark:border-white/10 dark:bg-zinc-900/95">
+                <div className="overflow-hidden rounded-2xl border border-border bg-popover p-1.5 shadow-xl">
                   <div className="flex items-center gap-3 border-b border-foreground/10 px-3 py-2.5">
                     {avatarUrl && !imageError ? (
                       <img
@@ -270,14 +249,14 @@ export function SiteHeader() {
           onClick={() => setMenuOpen((open) => !open)}
           aria-label={menuOpen ? "Close menu" : "Open menu"}
           aria-expanded={menuOpen}
-          className="flex size-10 items-center justify-center rounded-xl border border-foreground/10 bg-white/50 text-foreground transition-colors hover:bg-white/70 dark:bg-white/5 dark:hover:bg-white/10 lg:hidden"
+          className="flex size-10 items-center justify-center rounded-xl border border-border bg-transparent text-foreground transition-colors hover:bg-accent lg:hidden"
         >
           {menuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
         </button>
 
         {/* Dropdown panel (mobile / tablet) */}
         {menuOpen && (
-          <div className="absolute inset-x-0 top-[calc(100%+0.5rem)] rounded-2xl border border-foreground/10 bg-white/85 p-3 shadow-2xl backdrop-blur-xl dark:bg-zinc-950/85 lg:hidden">
+          <div className="absolute inset-x-0 top-[calc(100%+0.5rem)] rounded-2xl border border-border bg-popover p-3 shadow-2xl lg:hidden">
             <nav className="flex flex-col">
               {activeNavLinks.map((link) => (
                 <Link

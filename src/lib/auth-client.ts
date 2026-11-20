@@ -14,8 +14,4 @@ export const authClient = createAuthClient({
 export const { signIn, signUp, signOut, useSession } = authClient;
 
 /** Roles used by the app. `pending` means a Google user has not picked yet. */
-export type UserRole = "customer" | "vendor" | "pending";
-
-export function redirectPathForRole(role?: UserRole | string | null): string {
-  return role === "vendor" ? "/vendor" : role === "customer" ? "/customer" : "/complete-profile";
-}
+export type UserRole = "customer" | "vendor" | "pending" | "admin";

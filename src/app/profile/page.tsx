@@ -120,7 +120,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Medium size profile picture & header */}
-        <Card className="overflow-hidden border border-foreground/10 bg-white/60 shadow-sm backdrop-blur-md dark:border-white/10 dark:bg-zinc-900/60">
+        <Card className="overflow-hidden border border-border bg-card/80 shadow-sm backdrop-blur-md">
           <CardContent className="p-6">
             <div className="flex flex-col items-center gap-6 sm:flex-row">
               {/* Medium size profile picture (size-28 / 112px) */}

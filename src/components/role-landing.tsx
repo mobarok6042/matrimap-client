@@ -24,7 +24,7 @@ export function RoleLanding({
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           role="status"
-          className="mb-6 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-400"
+          className="mb-6 rounded-xl border border-secondary/50 bg-secondary/15 px-4 py-3 text-sm text-foreground"
         >
           {isVendor
             ? "Your vendor account is ready. Welcome to MatriMap!"
