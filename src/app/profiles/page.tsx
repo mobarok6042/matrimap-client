@@ -1,7 +1,7 @@
 import { ProfileList } from "@/components/profile-list";
 
 export const metadata = {
-  title: "Profiles — MatriMap",
+  title: "Matrimony profiles",
 };
 
 export default function ProfilesPage() {

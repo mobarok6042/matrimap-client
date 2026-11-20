@@ -141,8 +141,8 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-12">
-      <header className="mb-8">
+    <div className="space-y-6">
+      <header id="overview" className="mb-2 scroll-mt-24">
         <p className="text-sm font-medium uppercase tracking-wider text-primary">Admin control panel</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight">Welcome, {adminName}</h1>
         <p className="mt-1 text-muted-foreground">
@@ -150,13 +150,53 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
         </p>
       </header>
 
+      <section aria-label="Platform statistics" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {[
+          {
+            label: "Service listings",
+            value: servicesLoading ? "—" : String(services.length),
+            icon: Clock3,
+          },
+          {
+            label: "Pending review",
+            value: servicesLoading
+              ? "—"
+              : String(services.filter((service) => (service.approvalStatus ?? "pending") === "pending").length),
+            icon: Clock3,
+          },
+          {
+            label: "Vendor accounts",
+            value: usersLoading ? "—" : String(users.filter((user) => user.role === "vendor").length),
+            icon: UserRound,
+          },
+          {
+            label: "Plan payments",
+            value: paymentsLoading ? "—" : String(payments.length),
+            icon: CreditCard,
+          },
+        ].map((stat) => {
+          const Icon = stat.icon;
+          return (
+            <article key={stat.label} className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
+                <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <Icon className="size-5" />
+                </span>
+              </div>
+              <p className="mt-4 text-3xl font-semibold tracking-tight text-foreground">{stat.value}</p>
+            </article>
+          );
+        })}
+      </section>
+
       <div className="grid gap-8">
-        <Card className="border-border bg-card/70">
+        <Card id="vendor-plan-payments" className="scroll-mt-24 border-border bg-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <CreditCard className="size-5 text-primary" /> Vendor plan payments
             </CardTitle>
-            <CardDescription>One-time plan purchases confirmed by Stripe.</CardDescription>
+            <CardDescription>Vendor plan charges, session details, and payment status from Stripe.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {paymentsError && <p role="alert" className="text-sm text-destructive">{paymentsError}</p>}
@@ -167,38 +207,68 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
             ) : payments.length === 0 ? (
               <p className="py-4 text-sm text-muted-foreground">No vendor plan payments found.</p>
             ) : (
-              payments.map((payment) => (
-                <article
-                  key={payment._id}
-                  className="flex flex-col gap-2 rounded-xl border border-border bg-background/60 p-4 sm:flex-row sm:items-center"
-                >
-                  <div className="min-w-0 flex-1">
-                    <h2 className="font-semibold">
-                      {payment.vendorName} · <span className="capitalize">{payment.plan}</span>
-                    </h2>
-                    <p className="text-sm text-muted-foreground">{payment.vendorEmail}</p>
-                    <p className="mt-1 break-all text-xs text-muted-foreground">
-                      Checkout: {payment.checkoutSessionId}
-                    </p>
-                  </div>
-                  <div className="text-sm sm:text-right">
-                    <p className="font-semibold">
-                      {new Intl.NumberFormat(undefined, {
-                        style: "currency",
-                        currency: payment.currency.toUpperCase(),
-                      }).format(payment.amount / 100)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(payment.paidAt).toLocaleString()}
-                    </p>
-                  </div>
-                </article>
-              ))
+              <div className="overflow-x-auto rounded-xl border border-border">
+                <table className="w-full min-w-[1050px] border-collapse text-left text-sm">
+                  <thead className="bg-muted text-xs uppercase tracking-wide text-muted-foreground">
+                    <tr>
+                      <th scope="col" className="px-4 py-3 font-semibold">Vendor ID</th>
+                      <th scope="col" className="px-4 py-3 font-semibold">Plan</th>
+                      <th scope="col" className="px-4 py-3 font-semibold">Amount</th>
+                      <th scope="col" className="px-4 py-3 font-semibold">Currency</th>
+                      <th scope="col" className="px-4 py-3 font-semibold">Stripe session ID</th>
+                      <th scope="col" className="px-4 py-3 font-semibold">Stripe subscription ID</th>
+                      <th scope="col" className="px-4 py-3 font-semibold">Status</th>
+                      <th scope="col" className="px-4 py-3 font-semibold">Created at</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {payments.map((payment) => (
+                      <tr key={payment._id} className="align-top">
+                        <td className="max-w-40 break-all px-4 py-3 font-mono text-xs">
+                          {payment.vendorId}
+                        </td>
+                        <td className="px-4 py-3 font-medium capitalize">{payment.plan}</td>
+                        <td className="whitespace-nowrap px-4 py-3 font-medium">
+                          {new Intl.NumberFormat(undefined, {
+                            style: "currency",
+                            currency: payment.currency.toUpperCase(),
+                          }).format(payment.amount / 100)}
+                        </td>
+                        <td className="px-4 py-3 uppercase">{payment.currency}</td>
+                        <td className="max-w-52 break-all px-4 py-3 font-mono text-xs">
+                          {payment.stripeSessionId}
+                        </td>
+                        <td className="max-w-52 break-all px-4 py-3 font-mono text-xs">
+                          {payment.stripeSubscriptionId || "—"}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${
+                              payment.status === "paid"
+                                ? "bg-primary/10 text-primary"
+                                : payment.status === "failed" || payment.status === "expired"
+                                  ? "bg-destructive/10 text-destructive"
+                                  : "bg-secondary/30 text-secondary-foreground"
+                            }`}
+                          >
+                            {payment.status}
+                          </span>
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
+                          <time dateTime={payment.createdAt}>
+                            {new Date(payment.createdAt).toLocaleString()}
+                          </time>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-card/70">
+        <Card id="manage-services" className="scroll-mt-24 border-border bg-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Clock3 className="size-5 text-primary" /> Manage services
@@ -322,7 +392,7 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-card/70">
+        <Card id="managed-accounts" className="scroll-mt-24 border-border bg-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <UserRound className="size-5 text-primary" /> Customer and vendor accounts
@@ -381,6 +451,6 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
           </CardContent>
         </Card>
       </div>
-    </main>
+    </div>
   );
 }

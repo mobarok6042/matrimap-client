@@ -5,7 +5,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export const metadata = {
-  title: "Payment cancelled — MatriMap",
+  title: "Payment cancelled",
 };
 
 export default function CheckoutCancelPage() {

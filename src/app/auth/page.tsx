@@ -1,7 +1,7 @@
 import { AuthForm } from "@/components/auth-form";
 
 export const metadata = {
-  title: "Sign in or sign up — MatriMap",
+  title: "Sign in or sign up",
 };
 
 export default async function AuthPage({

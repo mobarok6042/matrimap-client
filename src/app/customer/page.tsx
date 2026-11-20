@@ -1,7 +1,7 @@
 import { RoleLanding } from "@/components/role-landing";
 
 export const metadata = {
-  title: "Customer — MatriMap",
+  title: "Customer",
 };
 
 export default async function CustomerPage({

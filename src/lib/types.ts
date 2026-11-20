@@ -54,12 +54,11 @@ export interface Booking {
 export interface PaymentTransaction {
   _id: string;
   vendorId: string;
-  vendorName: string;
-  vendorEmail: string;
   plan: "basic" | "max";
   amount: number;
   currency: string;
-  checkoutSessionId: string;
-  paymentIntentId?: string | null;
-  paidAt: string;
+  stripeSessionId: string;
+  stripeSubscriptionId: string | null;
+  status: "pending" | "paid" | "failed" | "expired";
+  createdAt: string;
 }

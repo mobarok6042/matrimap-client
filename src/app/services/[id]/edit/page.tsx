@@ -1,4 +1,8 @@
-import { ServiceForm } from "../../add/page";
+import { ServiceForm } from "../../add/service-form-page";
+
+export const metadata = {
+  title: "Edit service",
+};
 
 export default async function EditServicePage({
   params,
