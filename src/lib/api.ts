@@ -76,6 +76,29 @@ export class ApiError extends Error {
   }
 }
 
+let accessTokenReady: Promise<boolean> | null = null;
+
+async function ensureAccessToken(): Promise<void> {
+  if (typeof window === "undefined") return;
+  if (!accessTokenReady) {
+    accessTokenReady = fetch("/api/auth-token", {
+      credentials: "include",
+      cache: "no-store",
+    })
+      .then((response) => response.ok)
+      .catch(() => false)
+      .then((authenticated) => {
+        if (!authenticated) accessTokenReady = null;
+        return authenticated;
+      });
+  }
+  await accessTokenReady;
+}
+
+export function resetAccessToken(): void {
+  accessTokenReady = null;
+}
+
 export function getUserFacingError(error: unknown, fallback: string): string {
   if (error instanceof ApiError) return error.message;
   if (error instanceof Error && error.name === "TypeError" && /fetch/i.test(error.message)) {
@@ -111,6 +134,8 @@ export function getAuthErrorMessage(message: unknown, fallback: string): string 
 
 /** Small fetch wrapper for the Express API. Cookies are always included. */
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  if (!path.startsWith("/api/auth-token")) await ensureAccessToken();
+
   const isFormData = typeof FormData !== "undefined" && init?.body instanceof FormData;
   const url = path.startsWith("http")
     ? path

@@ -6,6 +6,7 @@ import { Loader2, UploadCloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { apiFetch, getUserFacingError } from "@/lib/api";
+import { showErrorAlert, showSuccessAlert } from "@/lib/alerts";
 
 interface UploadResponse {
   id: string;
@@ -15,30 +16,35 @@ interface UploadResponse {
 }
 
 interface UploadProps {
-  onUploaded?: (url: string) => void;
+  onUploaded?: (url: string) => void | Promise<void>;
 }
 
 export function ImageUpload({ onUploaded }: UploadProps = {}) {
   const [file, setFile] = React.useState<File | null>(null);
   const [uploaded, setUploaded] = React.useState<UploadResponse | null>(null);
   const [busy, setBusy] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
 
   async function handleUpload(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!file) return;
 
     setBusy(true);
-    setError(null);
 
     try {
       const body = new FormData();
       body.append("image", file);
       const res = await apiFetch<UploadResponse>("/api/upload/image", { method: "POST", body });
       setUploaded(res);
-      onUploaded?.(res.displayUrl);
+      if (onUploaded) {
+        await onUploaded(res.displayUrl);
+      } else {
+        void showSuccessAlert("Image uploaded");
+      }
     } catch (caught) {
-      setError(getUserFacingError(caught, "We could not upload this image. Please try again."));
+      await showErrorAlert(
+        getUserFacingError(caught, "We could not upload this image. Please try again."),
+        "Image upload failed",
+      );
     } finally {
       setBusy(false);
     }
@@ -62,8 +68,6 @@ export function ImageUpload({ onUploaded }: UploadProps = {}) {
           Upload
         </Button>
       </form>
-
-      {error && <p className="text-sm text-destructive">{error}</p>}
 
       {uploaded && (
         <div className="flex items-center gap-4 rounded-lg border p-3">

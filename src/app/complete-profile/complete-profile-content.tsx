@@ -7,6 +7,7 @@ import { Loader2 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { authClient, useSession } from "@/lib/auth-client";
+import { showErrorAlert, showSuccessAlert } from "@/lib/alerts";
 import type { UserRole } from "@/lib/auth-client";
 import { getAuthErrorMessage, getUserFacingError } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -15,7 +16,6 @@ export default function CompleteProfilePage() {
   const router = useRouter();
   const { data: session, isPending, refetch } = useSession();
   const [saving, setSaving] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
 
   const role = (session?.user as { role?: UserRole } | undefined)?.role;
 
@@ -28,22 +28,28 @@ export default function CompleteProfilePage() {
 
   async function chooseRole(nextRole: "customer" | "vendor") {
     setSaving(true);
-    setError(null);
     try {
       const result = await authClient.updateUser({
         role: nextRole,
       } as unknown as Parameters<typeof authClient.updateUser>[0]);
 
       if (result.error) {
-        setError(getAuthErrorMessage(result.error.message, "We could not save your account type. Please try again."));
+        await showErrorAlert(
+          getAuthErrorMessage(result.error.message, "We could not save your account type. Please try again."),
+          "Account type could not be saved",
+        );
         return;
       }
 
       await refetch();
+      void showSuccessAlert("Account type saved");
       router.replace("/dashboard");
       router.refresh();
     } catch (caught) {
-      setError(getUserFacingError(caught, "We could not save your account type. Please try again."));
+      await showErrorAlert(
+        getUserFacingError(caught, "We could not save your account type. Please try again."),
+        "Account type could not be saved",
+      );
     } finally {
       setSaving(false);
     }
@@ -107,11 +113,6 @@ export default function CompleteProfilePage() {
           >
             Continue as Vendor
           </Button>
-          {error && (
-            <p role="alert" className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
-              {error}
-            </p>
-          )}
         </CardContent>
       </Card>
     </main>

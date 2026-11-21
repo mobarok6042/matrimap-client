@@ -10,7 +10,8 @@ import { ProfileForm } from "@/components/profile-form";
 import { buttonVariants } from "@/components/ui/button";
 import { authClient, useSession } from "@/lib/auth-client";
 import type { UserRole } from "@/lib/auth-client";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, getAuthErrorMessage, getUserFacingError } from "@/lib/api";
+import { showErrorAlert, showSuccessAlert } from "@/lib/alerts";
 import type { Profile } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -57,14 +58,24 @@ export default function ProfilePage() {
       });
       setProfile(updated);
 
-      await authClient.updateUser({
+      const updateResult = await authClient.updateUser({
         image: url,
       } as unknown as Parameters<typeof authClient.updateUser>[0]);
+      if (updateResult.error) {
+        throw new Error(
+          getAuthErrorMessage(updateResult.error.message, "We could not update your profile photo."),
+        );
+      }
       await refetch();
       setSyncStatus("Profile photo updated successfully!");
+      void showSuccessAlert("Profile photo updated");
       setTimeout(() => setSyncStatus(null), 3500);
-    } catch {
-      setSyncStatus("Photo uploaded to ImgBB.");
+    } catch (caught) {
+      setSyncStatus("Photo uploaded, but profile photo could not be updated.");
+      await showErrorAlert(
+        getUserFacingError(caught, "We could not update your profile photo. Please try again."),
+        "Profile photo could not be updated",
+      );
       setTimeout(() => setSyncStatus(null), 3500);
     }
   }

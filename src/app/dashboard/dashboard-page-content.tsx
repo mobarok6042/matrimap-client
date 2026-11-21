@@ -26,6 +26,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { useSession } from "@/lib/auth-client";
 import type { UserRole } from "@/lib/auth-client";
 import { ApiError, apiFetch, getUserFacingError } from "@/lib/api";
+import { confirmAction, showErrorAlert, showSuccessAlert } from "@/lib/alerts";
 import type { Booking, Profile } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -152,6 +153,15 @@ function VendorBookings() {
   }, [fetchBookings]);
 
   const handleAction = async (id: string, action: "accept" | "decline") => {
+    if (action === "decline") {
+      const confirmed = await confirmAction({
+        title: "Decline this booking request?",
+        text: "The customer will see that this request was declined.",
+        confirmText: "Decline booking",
+      });
+      if (!confirmed) return;
+    }
+
     setActionLoading(id + action);
     setError(null);
     try {
@@ -161,8 +171,12 @@ function VendorBookings() {
       setBookings((prev) =>
         prev.map((b) => (String(b._id) === String(updated._id) ? updated : b))
       );
+      void showSuccessAlert(`Booking ${action === "accept" ? "accepted" : "declined"}`);
     } catch (err: unknown) {
-      setError(getUserFacingError(err, "We could not update this booking. Please try again."));
+      await showErrorAlert(
+        getUserFacingError(err, "We could not update this booking. Please try again."),
+        "Booking could not be updated",
+      );
     } finally {
       setActionLoading(null);
     }

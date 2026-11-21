@@ -19,7 +19,8 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { useSession } from "@/lib/auth-client";
-import { apiFetch, getUserFacingError } from "@/lib/api";
+import { ApiError, apiFetch, getUserFacingError } from "@/lib/api";
+import { showErrorAlert, showSuccessAlert } from "@/lib/alerts";
 import type { Booking, Service } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -32,12 +33,12 @@ export default function ServiceDetailsPage() {
   const [service, setService] = React.useState<Service | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [notFound, setNotFound] = React.useState(false);
+  const [loadError, setLoadError] = React.useState<string | null>(null);
   const [bookingOpen, setBookingOpen] = React.useState(false);
   const [eventDate, setEventDate] = React.useState("");
   const [eventLocation, setEventLocation] = React.useState("");
   const [message, setMessage] = React.useState("");
   const [bookingSubmitting, setBookingSubmitting] = React.useState(false);
-  const [bookingError, setBookingError] = React.useState<string | null>(null);
   const [bookingSuccess, setBookingSuccess] = React.useState(false);
 
   React.useEffect(() => {
@@ -51,8 +52,11 @@ export default function ServiceDetailsPage() {
       })
       .catch((err) => {
         if (!active) return;
-        console.error("Failed to load service:", err);
-        setNotFound(true);
+        if (err instanceof ApiError && err.status === 404) {
+          setNotFound(true);
+        } else {
+          setLoadError(getUserFacingError(err, "We could not load this service. Please try again."));
+        }
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -75,6 +79,20 @@ export default function ServiceDetailsPage() {
   }
 
   if (notFound || !service) {
+    if (loadError) {
+      return (
+        <main className="mx-auto max-w-4xl px-4 py-12">
+          <Card className="p-12 text-center">
+            <h1 className="text-xl font-bold text-foreground">Service details unavailable</h1>
+            <p role="alert" className="mt-2 text-sm text-muted-foreground">{loadError}</p>
+            <Link href="/services" className={cn(buttonVariants(), "mt-5")}>
+              Browse services
+            </Link>
+          </Card>
+        </main>
+      );
+    }
+
     return (
       <main className="mx-auto max-w-4xl px-4 py-12">
         <Card className="p-12 text-center">
@@ -214,7 +232,6 @@ export default function ServiceDetailsPage() {
                   onClick={() => {
                     setBookingOpen(true);
                     setBookingSuccess(false);
-                    setBookingError(null);
                   }}
                   className={cn(
                     buttonVariants({ variant: "default" }),
@@ -257,7 +274,6 @@ export default function ServiceDetailsPage() {
                     onSubmit={async (e) => {
                       e.preventDefault();
                       setBookingSubmitting(true);
-                      setBookingError(null);
                       try {
                         await apiFetch<Booking>("/api/bookings", {
                           method: "POST",
@@ -272,9 +288,11 @@ export default function ServiceDetailsPage() {
                         setEventDate("");
                         setEventLocation("");
                         setMessage("");
+                        void showSuccessAlert("Booking request sent");
                       } catch (err: unknown) {
-                        setBookingError(
-                          getUserFacingError(err, "We could not send your booking request. Please try again.")
+                        await showErrorAlert(
+                          getUserFacingError(err, "We could not send your booking request. Please try again."),
+                          "Booking request could not be sent",
                         );
                       } finally {
                         setBookingSubmitting(false);
@@ -333,12 +351,6 @@ export default function ServiceDetailsPage() {
                       <p className="text-xs text-muted-foreground text-right">{message.length}/2000</p>
                     </div>
 
-                    {bookingError && (
-                      <p className="text-sm text-destructive rounded-md bg-destructive/10 px-3 py-2">
-                        {bookingError}
-                      </p>
-                    )}
-
                     <div className="flex gap-3">
                       <button
                         type="submit"
@@ -362,7 +374,6 @@ export default function ServiceDetailsPage() {
                         type="button"
                         onClick={() => {
                           setBookingOpen(false);
-                          setBookingError(null);
                         }}
                         className={cn(buttonVariants({ variant: "outline" }))}
                       >

@@ -8,6 +8,7 @@ import type { Service } from "@/lib/types";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { confirmAction, showErrorAlert, showSuccessAlert } from "@/lib/alerts";
 
 export function VendorServices() {
   const [services, setServices] = React.useState<Service[]>([]);
@@ -36,14 +37,23 @@ export function VendorServices() {
   }, []);
 
   async function deleteService(service: Service) {
-    if (!window.confirm(`Delete "${service.title}"? This cannot be undone.`)) return;
+    const confirmed = await confirmAction({
+      title: "Delete this service?",
+      text: `Delete "${service.title}"? This cannot be undone.`,
+      confirmText: "Delete service",
+    });
+    if (!confirmed) return;
     setActionId(service._id);
     setError(null);
     try {
       await apiFetch<void>(`/api/services/${service._id}`, { method: "DELETE" });
       setServices((current) => current.filter((item) => item._id !== service._id));
+      void showSuccessAlert("Service deleted");
     } catch (caught) {
-      setError(getUserFacingError(caught, "We could not delete this service. Please try again."));
+      await showErrorAlert(
+        getUserFacingError(caught, "We could not delete this service. Please try again."),
+        "Service could not be deleted",
+      );
     } finally {
       setActionId(null);
     }

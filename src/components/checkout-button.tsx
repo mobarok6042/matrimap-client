@@ -4,6 +4,7 @@ import * as React from "react";
 import { CreditCard, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { apiFetch, getUserFacingError } from "@/lib/api";
+import { showErrorAlert } from "@/lib/alerts";
 
 interface CheckoutSession {
   id: string;
@@ -12,11 +13,9 @@ interface CheckoutSession {
 
 export function CheckoutButton() {
   const [busy, setBusy] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
 
   async function handleCheckout() {
     setBusy(true);
-    setError(null);
 
     try {
       const session = await apiFetch<CheckoutSession>("/api/payments/checkout", {
@@ -25,7 +24,10 @@ export function CheckoutButton() {
       if (!session.url) throw new Error("Stripe did not return a checkout URL.");
       window.location.assign(session.url);
     } catch (caught) {
-      setError(getUserFacingError(caught, "We could not start checkout. Please try again."));
+      await showErrorAlert(
+        getUserFacingError(caught, "We could not start checkout. Please try again."),
+        "Checkout could not be started",
+      );
       setBusy(false);
     }
   }
@@ -36,7 +38,6 @@ export function CheckoutButton() {
         {busy ? <Loader2 className="size-4 animate-spin" /> : <CreditCard className="size-4" />}
         Upgrade to Premium
       </Button>
-      {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
   );
 }

@@ -16,6 +16,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { apiFetch, getUserFacingError } from "@/lib/api";
+import { confirmAction, showErrorAlert, showSuccessAlert } from "@/lib/alerts";
 import type { PaymentTransaction, Service } from "@/lib/types";
 
 interface AdminUser {
@@ -88,6 +89,15 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
   }, []);
 
   async function reviewService(id: string, decision: "approve" | "decline") {
+    if (decision === "decline") {
+      const confirmed = await confirmAction({
+        title: "Decline this service?",
+        text: "The vendor will not be able to publish this service until it is approved.",
+        confirmText: "Decline service",
+      });
+      if (!confirmed) return;
+    }
+
     setServiceAction(id + decision);
     setServicesError(null);
     try {
@@ -97,8 +107,12 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
       setServices((current) =>
         current.map((service) => (service._id === id ? updated : service))
       );
+      void showSuccessAlert(`Service ${decision === "approve" ? "approved" : "declined"}`);
     } catch (error: unknown) {
-      setServicesError(getUserFacingError(error, "We could not update this service. Please try again."));
+      await showErrorAlert(
+        getUserFacingError(error, "We could not update this service. Please try again."),
+        "Service could not be updated",
+      );
     } finally {
       setServiceAction(null);
     }
@@ -107,6 +121,15 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
   async function toggleServiceAvailability(service: Service) {
     const isAvailable = service.isAvailable === false;
     const action = isAvailable ? "activate" : "deactivate";
+    if (!isAvailable) {
+      const confirmed = await confirmAction({
+        title: "Deactivate this service?",
+        text: "Customers will no longer be able to find or book this service.",
+        confirmText: "Deactivate service",
+      });
+      if (!confirmed) return;
+    }
+
     setServiceAction(service._id + action);
     setServicesError(null);
     try {
@@ -117,8 +140,12 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
       setServices((current) =>
         current.map((item) => (item._id === updated._id ? updated : item))
       );
+      void showSuccessAlert(`Service ${isAvailable ? "activated" : "deactivated"}`);
     } catch (error: unknown) {
-      setServicesError(getUserFacingError(error, "We could not update this service. Please try again."));
+      await showErrorAlert(
+        getUserFacingError(error, "We could not update this service. Please try again."),
+        "Service availability could not be updated",
+      );
     } finally {
       setServiceAction(null);
     }
@@ -126,6 +153,16 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
 
   async function toggleUserBlock(user: AdminUser) {
     const action = user.isBlocked ? "unblock" : "block";
+    const confirmed = await confirmAction({
+      title: user.isBlocked ? "Unblock this account?" : "Block this account?",
+      text: user.isBlocked
+        ? "The user will regain access to protected platform features."
+        : "The user will lose access to protected platform features.",
+      confirmText: user.isBlocked ? "Unblock account" : "Block account",
+      destructive: !user.isBlocked,
+    });
+    if (!confirmed) return;
+
     setUserAction(user.id);
     setUsersError(null);
     try {
@@ -133,8 +170,12 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
         method: "POST",
       });
       setUsers((current) => current.map((item) => (item.id === updated.id ? updated : item)));
+      void showSuccessAlert(`Account ${user.isBlocked ? "unblocked" : "blocked"}`);
     } catch (error: unknown) {
-      setUsersError(getUserFacingError(error, "We could not update this account. Please try again."));
+      await showErrorAlert(
+        getUserFacingError(error, "We could not update this account. Please try again."),
+        "Account could not be updated",
+      );
     } finally {
       setUserAction(null);
     }
@@ -398,7 +439,7 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
               <UserRound className="size-5 text-primary" /> Customer and vendor accounts
             </CardTitle>
             <CardDescription>
-              Blocked accounts cannot book services or publish listings.
+              Blocked accounts cannot use protected account features.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">

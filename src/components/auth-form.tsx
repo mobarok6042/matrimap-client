@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Check, Loader2, X } from "lucide-react";
 import { apiFetch, getAuthErrorMessage, getUserFacingError } from "@/lib/api";
 import { authClient, signIn, signUp } from "@/lib/auth-client";
+import { showErrorAlert, showSuccessAlert, showWarningAlert } from "@/lib/alerts";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -53,7 +54,6 @@ export function AuthForm({
   const [role, setRole] = React.useState<"customer" | "vendor">("customer");
   const [image, setImage] = React.useState<File | null>(null);
   const [error, setError] = React.useState<string | null>(initialError ?? null);
-  const [notice, setNotice] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [googleLoading, setGoogleLoading] = React.useState(false);
 
@@ -67,13 +67,11 @@ export function AuthForm({
   function switchMode(next: Mode) {
     setMode(next);
     setError(null);
-    setNotice(null);
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
-    setNotice(null);
 
     if (mode === "sign-up" && !passwordValid) {
       setError(PASSWORD_RULE_MESSAGE);
@@ -92,13 +90,17 @@ export function AuthForm({
         } as unknown as Parameters<typeof signUp.email>[0]);
 
         if (result.error) {
-          setError(getAuthErrorMessage(result.error.message, "We could not create your account. Please try again."));
+          await showErrorAlert(
+            getAuthErrorMessage(result.error.message, "We could not create your account. Please try again."),
+            "Account creation failed",
+          );
           return;
         }
 
         // The account is now authenticated, so the protected upload endpoint
         // accepts the optional profile image. A missing ImgBB key must not
         // block registration.
+        let imageUploadFailed = false;
         if (image) {
           try {
             const form = new FormData();
@@ -108,13 +110,25 @@ export function AuthForm({
               { method: "POST", body: form },
             );
             const imageUrl = uploaded.displayUrl ?? uploaded.url;
-            if (imageUrl) await authClient.updateUser({ image: imageUrl });
+            if (imageUrl) {
+              const updateResult = await authClient.updateUser({ image: imageUrl });
+              if (updateResult.error) {
+                throw new Error(
+                  getAuthErrorMessage(updateResult.error.message, "We could not save your profile photo."),
+                );
+              }
+            }
           } catch (caught) {
             console.warn("[matrimap:auth] Optional profile image upload failed", caught);
-            setNotice("Your account was created, but the profile image could not be uploaded.");
+            imageUploadFailed = true;
           }
         }
 
+        if (imageUploadFailed) {
+          void showWarningAlert("Account created", "Your profile photo could not be uploaded.");
+        } else {
+          void showSuccessAlert("Account created", "Welcome to MatriMap.");
+        }
         router.push(`/${role}?welcome=1`);
         router.refresh();
         return;
@@ -126,14 +140,21 @@ export function AuthForm({
       });
 
       if (result.error) {
-        setError(getAuthErrorMessage(result.error.message, "We could not sign you in. Please try again."));
+        await showErrorAlert(
+          getAuthErrorMessage(result.error.message, "We could not sign you in. Please try again."),
+          "Sign-in failed",
+        );
         return;
       }
 
+      void showSuccessAlert("Signed in", "Welcome back to MatriMap.");
       router.push("/dashboard");
       router.refresh();
     } catch (caught) {
-      setError(getUserFacingError(caught, "We could not complete sign-in. Please try again."));
+      await showErrorAlert(
+        getUserFacingError(caught, "We could not complete sign-in. Please try again."),
+        "Sign-in failed",
+      );
     } finally {
       setLoading(false);
     }
@@ -141,7 +162,6 @@ export function AuthForm({
 
   async function handleGoogle() {
     setError(null);
-    setNotice(null);
     setGoogleLoading(true);
 
     try {
@@ -154,11 +174,17 @@ export function AuthForm({
       });
 
       if (result.error) {
-        setError(getAuthErrorMessage(result.error.message, "Google sign-in is unavailable right now. Please try again later."));
+        await showErrorAlert(
+          getAuthErrorMessage(result.error.message, "Google sign-in is unavailable right now. Please try again later."),
+          "Google sign-in failed",
+        );
         setGoogleLoading(false);
       }
     } catch (caught) {
-      setError(getUserFacingError(caught, "Google sign-in is unavailable right now. Please try again later."));
+      await showErrorAlert(
+        getUserFacingError(caught, "Google sign-in is unavailable right now. Please try again later."),
+        "Google sign-in failed",
+      );
       setGoogleLoading(false);
     }
   }
@@ -269,12 +295,6 @@ export function AuthForm({
               {error}
             </p>
           )}
-          {notice && (
-            <p role="status" className="rounded-md bg-secondary/15 px-3 py-2 text-sm text-foreground">
-              {notice}
-            </p>
-          )}
-
           <Button type="submit" disabled={loading || googleLoading} className="w-full">
             {loading && <Loader2 className="size-4 animate-spin" />}
             {mode === "sign-in" ? "Sign in" : "Create account"}

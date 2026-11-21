@@ -5,6 +5,7 @@ import { CreditCard, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { apiFetch, getUserFacingError } from "@/lib/api";
+import { confirmAction, showErrorAlert, showSuccessAlert } from "@/lib/alerts";
 
 type PlanName = "free" | "basic" | "max";
 type PaidPlanName = Exclude<PlanName, "free">;
@@ -51,19 +52,21 @@ export function VendorPlanManager() {
       if (!session.url) throw new Error("Stripe did not return a checkout URL.");
       window.location.assign(session.url);
     } catch (caught) {
-      setError(getUserFacingError(caught, "We could not start checkout. Please try again."));
+      await showErrorAlert(
+        getUserFacingError(caught, "We could not start checkout. Please try again."),
+        "Checkout could not be started",
+      );
       setBusy(null);
     }
   }
 
   async function cancelPlan() {
-    if (
-      !window.confirm(
-        "Cancel your paid plan? You will move to Free, and MatriMap will delete your stored plan transaction records. This does not refund the one-time Stripe payment.",
-      )
-    ) {
-      return;
-    }
+    const confirmed = await confirmAction({
+      title: "Cancel your paid plan?",
+      text: "You will move to Free, and MatriMap will delete your stored plan transaction records. This does not refund the one-time Stripe payment.",
+      confirmText: "Cancel paid plan",
+    });
+    if (!confirmed) return;
 
     setBusy("cancel");
     setError(null);
@@ -78,8 +81,12 @@ export function VendorPlanManager() {
             }
           : current,
       );
+      void showSuccessAlert("Plan cancelled", "Your account has moved to the Free plan.");
     } catch (caught) {
-      setError(getUserFacingError(caught, "We could not cancel your plan. Please try again."));
+      await showErrorAlert(
+        getUserFacingError(caught, "We could not cancel your plan. Please try again."),
+        "Plan could not be cancelled",
+      );
     } finally {
       setBusy(null);
     }

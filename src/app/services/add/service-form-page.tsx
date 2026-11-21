@@ -28,6 +28,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSession } from "@/lib/auth-client";
 import { apiFetch, getUserFacingError } from "@/lib/api";
+import { showErrorAlert, showSuccessAlert } from "@/lib/alerts";
 import type { Service } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -158,10 +159,12 @@ export function ServiceForm({ serviceId }: { serviceId?: string }) {
       const uploadedUrl = res.displayUrl || res.url;
       setImageUrl(uploadedUrl);
       setImageUploadSuccess(true);
+      void showSuccessAlert("Service image uploaded");
     } catch (caught) {
       const msg = getUserFacingError(caught, "We could not upload this image. Please try again.");
       setImageUploadError(msg);
       setImageUrl("");
+      await showErrorAlert(msg, "Image upload failed");
     } finally {
       setUploadingImage(false);
     }
@@ -237,12 +240,18 @@ export function ServiceForm({ serviceId }: { serviceId?: string }) {
       });
 
       setSuccess(true);
+      void showSuccessAlert(
+        serviceId ? "Service updated" : "Service submitted for review",
+      );
       setTimeout(() => {
         router.push(serviceId ? "/vendor" : "/dashboard");
         router.refresh();
       }, 1500);
     } catch (caught) {
-      setError(getUserFacingError(caught, "We could not publish this service. Please try again."));
+      await showErrorAlert(
+        getUserFacingError(caught, "We could not publish this service. Please try again."),
+        serviceId ? "Service could not be updated" : "Service could not be submitted",
+      );
     } finally {
       setBusy(false);
     }

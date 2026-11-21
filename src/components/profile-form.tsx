@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { apiFetch, ApiError, getUserFacingError } from "@/lib/api";
+import { showErrorAlert, showSuccessAlert } from "@/lib/alerts";
 import type { Profile } from "@/lib/types";
 
 interface ProfileInput {
@@ -74,10 +75,13 @@ export function ProfileForm({ onSaved }: ProfileFormProps = {}) {
           age: form.age ? Number(form.age) : undefined,
         }),
       });
-      setMessage("Profile saved.");
+      void showSuccessAlert("Profile saved");
       onSaved?.(savedProfile);
     } catch (error) {
-      setMessage(getUserFacingError(error, "We could not save your profile. Please try again."));
+      await showErrorAlert(
+        getUserFacingError(error, "We could not save your profile. Please try again."),
+        "Profile could not be saved",
+      );
     } finally {
       setSaving(false);
     }

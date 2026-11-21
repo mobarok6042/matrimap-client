@@ -21,7 +21,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { CategoryServicesSection } from "@/components/category-services-section";
 import { useSession } from "@/lib/auth-client";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, getUserFacingError } from "@/lib/api";
+import { showErrorAlert, showSuccessAlert } from "@/lib/alerts";
 import type { Service } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +33,7 @@ export default function ServicesPage() {
   const router = useRouter();
   const [services, setServices] = React.useState<Service[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
   const [currentPage, setCurrentPage] = React.useState(1);
   const [seeding, setSeeding] = React.useState(false);
   const [activeContactService, setActiveContactService] = React.useState<Service | null>(null);
@@ -43,12 +45,13 @@ export default function ServicesPage() {
 
   const fetchServices = React.useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const data = await apiFetch<Service[]>("/api/services");
       setServices(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error("Failed to load services:", err);
       setServices([]);
+      setError(getUserFacingError(err, "We could not load services. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -66,8 +69,12 @@ export default function ServicesPage() {
     try {
       await apiFetch("/api/services/seed", { method: "POST" });
       await fetchServices();
+      void showSuccessAlert("Example services added");
     } catch (err) {
-      console.error("Failed to seed services:", err);
+      await showErrorAlert(
+        getUserFacingError(err, "We could not load example services. Please try again."),
+        "Example services could not be added",
+      );
     } finally {
       setSeeding(false);
     }
@@ -112,8 +119,16 @@ export default function ServicesPage() {
       {loading ? (
         <div className="flex min-h-[300px] flex-col items-center justify-center text-muted-foreground">
           <Loader2 className="mb-2 size-8 animate-spin text-primary" />
-          <p className="text-sm">Fetching services from Atlas database…</p>
+          <p className="text-sm">Loading services…</p>
         </div>
+      ) : error ? (
+        <Card className="p-8 text-center">
+          <h2 className="text-lg font-semibold">Services are temporarily unavailable</h2>
+          <p role="alert" className="mt-2 text-sm text-muted-foreground">{error}</p>
+          <Button type="button" className="mt-5" onClick={() => void fetchServices()}>
+            Try again
+          </Button>
+        </Card>
       ) : services.length === 0 ? (
         <Card className="p-12 text-center">
           <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -121,21 +136,23 @@ export default function ServicesPage() {
           </div>
           <h3 className="text-xl font-semibold text-foreground">No services found</h3>
           <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-            No wedding services have been listed yet in the Atlas database.
+            No wedding services are available right now. Please check back soon.
           </p>
 
           {isAdmin && (
             <div className="mt-6 flex justify-center">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={seeding}
-                onClick={handleSeed}
-                className="gap-2"
-              >
-                {seeding && <Loader2 className="size-4 animate-spin" />}
-                Load Example Services
-              </Button>
+              <div className="space-y-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={seeding}
+                  onClick={handleSeed}
+                  className="gap-2"
+                >
+                  {seeding && <Loader2 className="size-4 animate-spin" />}
+                  Load Example Services
+                </Button>
+              </div>
             </div>
           )}
         </Card>
@@ -262,7 +279,7 @@ export default function ServicesPage() {
         </nav>
       )}
 
-      <CategoryServicesSection />
+      {!error && <CategoryServicesSection />}
 
       {/* Vendor Contact Modal */}
       {activeContactService && (

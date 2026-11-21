@@ -7,7 +7,8 @@ import { usePathname } from "next/navigation";
 import { ChevronDown, LayoutDashboard, LogOut, Menu, PlusCircle, User, X } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { signOut, useSession } from "@/lib/auth-client";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, getAuthErrorMessage, getUserFacingError } from "@/lib/api";
+import { showErrorAlert, showSuccessAlert } from "@/lib/alerts";
 import type { Profile } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +27,27 @@ export function SiteHeader() {
   const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
   const closeMenu = () => setMenuOpen(false);
+
+  async function handleSignOut() {
+    closeMenu();
+    setIsHovered(false);
+    try {
+      const result = await signOut();
+      if (result.error) {
+        await showErrorAlert(
+          getAuthErrorMessage(result.error.message, "We could not sign you out. Please try again."),
+          "Sign-out failed",
+        );
+        return;
+      }
+      void showSuccessAlert("Signed out");
+    } catch (caught) {
+      await showErrorAlert(
+        getUserFacingError(caught, "We could not sign you out. Please try again."),
+        "Sign-out failed",
+      );
+    }
+  }
 
   React.useEffect(() => {
     if (!menuOpen) return;
@@ -244,10 +266,7 @@ export function SiteHeader() {
                     <div className="my-1 border-t border-foreground/10" />
                     <button
                       type="button"
-                      onClick={() => {
-                        setIsHovered(false);
-                        void signOut();
-                      }}
+                      onClick={() => void handleSignOut()}
                       className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
                     >
                       <LogOut className="size-4" />
@@ -400,10 +419,7 @@ export function SiteHeader() {
                 <Button
                   variant="outline"
                   className="w-full justify-start gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                  onClick={() => {
-                    closeMenu();
-                    void signOut();
-                  }}
+                  onClick={() => void handleSignOut()}
                 >
                   <LogOut className="size-4" />
                   Sign out
