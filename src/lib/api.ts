@@ -78,6 +78,19 @@ export class ApiError extends Error {
 
 let accessTokenReady: Promise<boolean> | null = null;
 
+function needsAccessToken(path: string, method: string): boolean {
+  if (method.toUpperCase() !== "GET") return true;
+
+  // These catalog endpoints are public. Do not ask the auth-token endpoint
+  // for a JWT while browsing them as a signed-out visitor.
+  return !(
+    path === "/api/services" ||
+    path.startsWith("/api/services?") ||
+    path === "/api/profiles" ||
+    path.startsWith("/api/profiles?")
+  );
+}
+
 async function ensureAccessToken(): Promise<void> {
   if (typeof window === "undefined") return;
   if (!accessTokenReady) {
@@ -134,7 +147,9 @@ export function getAuthErrorMessage(message: unknown, fallback: string): string 
 
 /** Small fetch wrapper for the Express API. Cookies are always included. */
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  if (!path.startsWith("/api/auth-token")) await ensureAccessToken();
+  if (!path.startsWith("/api/auth-token") && needsAccessToken(path, init?.method ?? "GET")) {
+    await ensureAccessToken();
+  }
 
   const isFormData = typeof FormData !== "undefined" && init?.body instanceof FormData;
   const url = path.startsWith("http")

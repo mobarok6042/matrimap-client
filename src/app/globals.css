@@ -93,6 +93,13 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 6rem;
+  overscroll-behavior-y: none;
+}
+
+body {
+  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 @keyframes page-fade-in {
