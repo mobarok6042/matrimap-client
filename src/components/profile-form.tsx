@@ -5,7 +5,7 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { apiFetch, ApiError } from "@/lib/api";
+import { apiFetch, ApiError, getUserFacingError } from "@/lib/api";
 import type { Profile } from "@/lib/types";
 
 interface ProfileInput {
@@ -45,7 +45,7 @@ export function ProfileForm({ onSaved }: ProfileFormProps = {}) {
       .catch((error: unknown) => {
         // A missing profile is expected for new users.
         if (!(error instanceof ApiError && error.status === 404)) {
-          if (active) setMessage((error as Error).message);
+          if (active) setMessage(getUserFacingError(error, "We could not load your profile. Please try again."));
         }
       })
       .finally(() => {
@@ -77,7 +77,7 @@ export function ProfileForm({ onSaved }: ProfileFormProps = {}) {
       setMessage("Profile saved.");
       onSaved?.(savedProfile);
     } catch (error) {
-      setMessage((error as Error).message);
+      setMessage(getUserFacingError(error, "We could not save your profile. Please try again."));
     } finally {
       setSaving(false);
     }

@@ -27,7 +27,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSession } from "@/lib/auth-client";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, getUserFacingError } from "@/lib/api";
 import type { Service } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -122,7 +122,7 @@ export function ServiceForm({ serviceId }: { serviceId?: string }) {
       .catch((caught: unknown) => {
         if (active) {
           setServiceLoadError(
-            caught instanceof Error ? caught.message : "Could not load this service.",
+            getUserFacingError(caught, "We could not load this service. Please try again."),
           );
         }
       })
@@ -159,7 +159,7 @@ export function ServiceForm({ serviceId }: { serviceId?: string }) {
       setImageUrl(uploadedUrl);
       setImageUploadSuccess(true);
     } catch (caught) {
-      const msg = (caught as Error).message || "Failed to upload image to ImgBB.";
+      const msg = getUserFacingError(caught, "We could not upload this image. Please try again.");
       setImageUploadError(msg);
       setImageUrl("");
     } finally {
@@ -242,7 +242,7 @@ export function ServiceForm({ serviceId }: { serviceId?: string }) {
         router.refresh();
       }, 1500);
     } catch (caught) {
-      setError((caught as Error).message || "Failed to publish wedding service.");
+      setError(getUserFacingError(caught, "We could not publish this service. Please try again."));
     } finally {
       setBusy(false);
     }

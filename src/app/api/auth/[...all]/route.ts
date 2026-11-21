@@ -45,10 +45,8 @@ async function proxy(request: NextRequest): Promise<Response> {
       redirect: "manual",
     });
   } catch (error) {
-    return Response.json(
-      { error: "Auth service is unavailable.", detail: (error as Error).message },
-      { status: 502 },
-    );
+    console.error("[matrimap:auth-proxy] Authentication request failed", error);
+    return Response.json({ error: "Sign-in is temporarily unavailable. Please try again." }, { status: 502 });
   }
 
   const responseHeaders = new Headers();

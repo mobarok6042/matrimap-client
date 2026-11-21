@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowRight, Building2, Loader2, MapPin, Star } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, getUserFacingError } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
 import type { Service } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -32,7 +32,7 @@ export function HomeServices() {
       })
       .catch((caught: unknown) => {
         if (active) {
-          setError(caught instanceof Error ? caught.message : "Could not load services.");
+          setError(getUserFacingError(caught, "We could not load featured services. Please try again later."));
         }
       })
       .finally(() => {

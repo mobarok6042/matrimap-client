@@ -19,7 +19,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { useSession } from "@/lib/auth-client";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, getUserFacingError } from "@/lib/api";
 import type { Booking, Service } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -273,9 +273,8 @@ export default function ServiceDetailsPage() {
                         setEventLocation("");
                         setMessage("");
                       } catch (err: unknown) {
-                        const e = err as { message?: string };
                         setBookingError(
-                          e?.message || "Failed to send booking request. Please try again."
+                          getUserFacingError(err, "We could not send your booking request. Please try again.")
                         );
                       } finally {
                         setBookingSubmitting(false);

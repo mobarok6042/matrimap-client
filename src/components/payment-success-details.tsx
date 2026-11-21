@@ -5,7 +5,7 @@ import Link from "next/link";
 import { CircleCheck, CircleX, Clock3, Loader2 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, getUserFacingError } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 type PaymentStatus = "pending" | "paid" | "failed" | "expired";
@@ -42,7 +42,7 @@ export function PaymentSuccessDetails({ sessionId }: { sessionId: string | null 
       })
       .catch((caught: unknown) => {
         if (active) {
-          setError(caught instanceof Error ? caught.message : "Could not verify this payment.");
+          setError(getUserFacingError(caught, "We could not verify this payment. Please try again."));
         }
       })
       .finally(() => {

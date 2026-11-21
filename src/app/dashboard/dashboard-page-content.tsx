@@ -25,7 +25,7 @@ import { DashboardShell } from "@/components/dashboard-shell";
 import { buttonVariants } from "@/components/ui/button";
 import { useSession } from "@/lib/auth-client";
 import type { UserRole } from "@/lib/auth-client";
-import { ApiError, apiFetch } from "@/lib/api";
+import { ApiError, apiFetch, getUserFacingError } from "@/lib/api";
 import type { Booking, Profile } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -62,7 +62,7 @@ function CustomerBookings() {
     apiFetch<Booking[]>("/api/bookings/me")
       .then(setBookings)
       .catch((err: unknown) => {
-        setError(err instanceof Error ? err.message : "Failed to load booking requests.");
+        setError(getUserFacingError(err, "We could not load your bookings. Please try again."));
       })
       .finally(() => setLoading(false));
   }, []);
@@ -142,7 +142,7 @@ function VendorBookings() {
     apiFetch<Booking[]>("/api/bookings/vendor/me")
       .then(setBookings)
       .catch((err: unknown) => {
-        setError(err instanceof Error ? err.message : "Failed to load booking requests.");
+        setError(getUserFacingError(err, "We could not load booking requests. Please try again."));
       })
       .finally(() => setLoading(false));
   }, []);
@@ -162,7 +162,7 @@ function VendorBookings() {
         prev.map((b) => (String(b._id) === String(updated._id) ? updated : b))
       );
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to update booking request.");
+      setError(getUserFacingError(err, "We could not update this booking. Please try again."));
     } finally {
       setActionLoading(null);
     }
@@ -299,7 +299,7 @@ export default function DashboardPage() {
       .catch((caught: unknown) => {
         if (caught instanceof ApiError && caught.status === 404) return;
         setProfileError(
-          caught instanceof Error ? caught.message : "Could not load your profile details.",
+          getUserFacingError(caught, "We could not load your profile details. Please try again."),
         );
       });
   }, [isBlocked, session]);

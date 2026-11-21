@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Check, Loader2, X } from "lucide-react";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, getAuthErrorMessage, getUserFacingError } from "@/lib/api";
 import { authClient, signIn, signUp } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -92,7 +92,7 @@ export function AuthForm({
         } as unknown as Parameters<typeof signUp.email>[0]);
 
         if (result.error) {
-          setError(result.error.message ?? "Could not create your account.");
+          setError(getAuthErrorMessage(result.error.message, "We could not create your account. Please try again."));
           return;
         }
 
@@ -109,7 +109,8 @@ export function AuthForm({
             );
             const imageUrl = uploaded.displayUrl ?? uploaded.url;
             if (imageUrl) await authClient.updateUser({ image: imageUrl });
-          } catch {
+          } catch (caught) {
+            console.warn("[matrimap:auth] Optional profile image upload failed", caught);
             setNotice("Your account was created, but the profile image could not be uploaded.");
           }
         }
@@ -125,14 +126,14 @@ export function AuthForm({
       });
 
       if (result.error) {
-        setError(result.error.message ?? "Invalid email or password.");
+        setError(getAuthErrorMessage(result.error.message, "We could not sign you in. Please try again."));
         return;
       }
 
       router.push("/dashboard");
       router.refresh();
     } catch (caught) {
-      setError((caught as Error).message ?? "Something went wrong. Please try again.");
+      setError(getUserFacingError(caught, "We could not complete sign-in. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -153,11 +154,11 @@ export function AuthForm({
       });
 
       if (result.error) {
-        setError(result.error.message ?? "Google sign-in failed. Please try again.");
+        setError(getAuthErrorMessage(result.error.message, "Google sign-in is unavailable right now. Please try again later."));
         setGoogleLoading(false);
       }
     } catch (caught) {
-      setError((caught as Error).message ?? "Google sign-in failed. Please try again.");
+      setError(getUserFacingError(caught, "Google sign-in is unavailable right now. Please try again later."));
       setGoogleLoading(false);
     }
   }

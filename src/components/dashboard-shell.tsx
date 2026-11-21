@@ -19,7 +19,7 @@ import {
   X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, getUserFacingError } from "@/lib/api";
 import type { Booking, Service } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -208,7 +208,7 @@ function DashboardMetrics({ role }: { role: Exclude<DashboardRole, "admin"> }) {
         }
       } catch (caught) {
         if (active) {
-          setError(caught instanceof Error ? caught.message : "Could not load dashboard statistics.");
+          setError(getUserFacingError(caught, "We could not load dashboard statistics. Please refresh and try again."));
         }
       } finally {
         if (active) setLoading(false);

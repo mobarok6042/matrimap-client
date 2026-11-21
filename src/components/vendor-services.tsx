@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { Loader2, Pencil, PlusCircle, Trash2 } from "lucide-react";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, getUserFacingError } from "@/lib/api";
 import type { Service } from "@/lib/types";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,7 +23,7 @@ export function VendorServices() {
       })
       .catch((caught: unknown) => {
         if (active) {
-          setError(caught instanceof Error ? caught.message : "Could not load your services.");
+          setError(getUserFacingError(caught, "We could not load your services. Please try again."));
         }
       })
       .finally(() => {
@@ -43,7 +43,7 @@ export function VendorServices() {
       await apiFetch<void>(`/api/services/${service._id}`, { method: "DELETE" });
       setServices((current) => current.filter((item) => item._id !== service._id));
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not delete the service.");
+      setError(getUserFacingError(caught, "We could not delete this service. Please try again."));
     } finally {
       setActionId(null);
     }

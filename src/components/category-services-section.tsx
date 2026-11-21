@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { ArrowRight, Building2, Loader2, MapPin, Search, X } from "lucide-react";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, getUserFacingError } from "@/lib/api";
 import type { Service } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
@@ -52,7 +52,7 @@ export function CategoryServicesSection() {
         })
         .catch((caught: unknown) => {
           if (active) {
-            setError(caught instanceof Error ? caught.message : "Could not load service categories.");
+            setError(getUserFacingError(caught, "We could not load services. Please try again."));
             setServices([]);
           }
         })

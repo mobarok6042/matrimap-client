@@ -3,7 +3,7 @@
 import * as React from "react";
 import { CreditCard, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, getUserFacingError } from "@/lib/api";
 
 interface CheckoutSession {
   id: string;
@@ -25,7 +25,7 @@ export function CheckoutButton() {
       if (!session.url) throw new Error("Stripe did not return a checkout URL.");
       window.location.assign(session.url);
     } catch (caught) {
-      setError((caught as Error).message);
+      setError(getUserFacingError(caught, "We could not start checkout. Please try again."));
       setBusy(false);
     }
   }

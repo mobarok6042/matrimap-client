@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, getUserFacingError } from "@/lib/api";
 import type { PaymentTransaction, Service } from "@/lib/types";
 
 interface AdminUser {
@@ -49,7 +49,7 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
       })
       .catch((error: unknown) => {
         if (active) {
-          setServicesError(error instanceof Error ? error.message : "Could not load services.");
+          setServicesError(getUserFacingError(error, "We could not load services. Please try again."));
         }
       })
       .finally(() => {
@@ -62,7 +62,7 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
       })
       .catch((error: unknown) => {
         if (active) {
-          setUsersError(error instanceof Error ? error.message : "Could not load users.");
+          setUsersError(getUserFacingError(error, "We could not load accounts. Please try again."));
         }
       })
       .finally(() => {
@@ -75,7 +75,7 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
       })
       .catch((error: unknown) => {
         if (active) {
-          setPaymentsError(error instanceof Error ? error.message : "Could not load payments.");
+          setPaymentsError(getUserFacingError(error, "We could not load payments. Please try again."));
         }
       })
       .finally(() => {
@@ -98,7 +98,7 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
         current.map((service) => (service._id === id ? updated : service))
       );
     } catch (error: unknown) {
-      setServicesError(error instanceof Error ? error.message : "Could not update service.");
+      setServicesError(getUserFacingError(error, "We could not update this service. Please try again."));
     } finally {
       setServiceAction(null);
     }
@@ -118,7 +118,7 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
         current.map((item) => (item._id === updated._id ? updated : item))
       );
     } catch (error: unknown) {
-      setServicesError(error instanceof Error ? error.message : "Could not update service.");
+      setServicesError(getUserFacingError(error, "We could not update this service. Please try again."));
     } finally {
       setServiceAction(null);
     }
@@ -134,7 +134,7 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
       });
       setUsers((current) => current.map((item) => (item.id === updated.id ? updated : item)));
     } catch (error: unknown) {
-      setUsersError(error instanceof Error ? error.message : "Could not update user.");
+      setUsersError(getUserFacingError(error, "We could not update this account. Please try again."));
     } finally {
       setUserAction(null);
     }

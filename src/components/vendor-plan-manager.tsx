@@ -4,7 +4,7 @@ import * as React from "react";
 import { CreditCard, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, getUserFacingError } from "@/lib/api";
 
 type PlanName = "free" | "basic" | "max";
 type PaidPlanName = Exclude<PlanName, "free">;
@@ -29,7 +29,7 @@ export function VendorPlanManager() {
         if (active) setSummary(data);
       })
       .catch((caught: unknown) => {
-        if (active) setError(caught instanceof Error ? caught.message : "Could not load your plan.");
+        if (active) setError(getUserFacingError(caught, "We could not load your plan. Please try again."));
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -51,7 +51,7 @@ export function VendorPlanManager() {
       if (!session.url) throw new Error("Stripe did not return a checkout URL.");
       window.location.assign(session.url);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not start checkout.");
+      setError(getUserFacingError(caught, "We could not start checkout. Please try again."));
       setBusy(null);
     }
   }
@@ -79,7 +79,7 @@ export function VendorPlanManager() {
           : current,
       );
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not cancel your plan.");
+      setError(getUserFacingError(caught, "We could not cancel your plan. Please try again."));
     } finally {
       setBusy(null);
     }

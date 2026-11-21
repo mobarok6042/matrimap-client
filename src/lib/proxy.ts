@@ -42,10 +42,8 @@ export async function proxyToExpress(request: NextRequest): Promise<Response> {
       redirect: "manual",
     });
   } catch (error) {
-    return Response.json(
-      { error: "Express backend service is unavailable.", detail: (error as Error).message },
-      { status: 502 },
-    );
+    console.error("[matrimap:proxy] Express backend request failed", error);
+    return Response.json({ error: "The service is temporarily unavailable. Please try again." }, { status: 502 });
   }
 
   const responseHeaders = new Headers();

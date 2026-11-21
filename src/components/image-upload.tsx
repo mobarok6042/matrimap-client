@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Loader2, UploadCloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, getUserFacingError } from "@/lib/api";
 
 interface UploadResponse {
   id: string;
@@ -38,7 +38,7 @@ export function ImageUpload({ onUploaded }: UploadProps = {}) {
       setUploaded(res);
       onUploaded?.(res.displayUrl);
     } catch (caught) {
-      setError((caught as Error).message);
+      setError(getUserFacingError(caught, "We could not upload this image. Please try again."));
     } finally {
       setBusy(false);
     }

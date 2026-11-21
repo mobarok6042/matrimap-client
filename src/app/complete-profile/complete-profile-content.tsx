@@ -8,6 +8,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { authClient, useSession } from "@/lib/auth-client";
 import type { UserRole } from "@/lib/auth-client";
+import { getAuthErrorMessage, getUserFacingError } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 export default function CompleteProfilePage() {
@@ -34,7 +35,7 @@ export default function CompleteProfilePage() {
       } as unknown as Parameters<typeof authClient.updateUser>[0]);
 
       if (result.error) {
-        setError(result.error.message ?? "Could not save your role.");
+        setError(getAuthErrorMessage(result.error.message, "We could not save your account type. Please try again."));
         return;
       }
 
@@ -42,7 +43,7 @@ export default function CompleteProfilePage() {
       router.replace("/dashboard");
       router.refresh();
     } catch (caught) {
-      setError((caught as Error).message ?? "Could not save your role.");
+      setError(getUserFacingError(caught, "We could not save your account type. Please try again."));
     } finally {
       setSaving(false);
     }

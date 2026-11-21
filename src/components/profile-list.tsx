@@ -4,7 +4,7 @@ import * as React from "react";
 import { motion } from "motion/react";
 import { Card as HeroCard, Chip } from "@heroui/react";
 import { MapPin } from "lucide-react";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, getUserFacingError } from "@/lib/api";
 import type { Profile } from "@/lib/types";
 
 export function ProfileList() {
@@ -20,7 +20,7 @@ export function ProfileList() {
         if (active) setProfiles(data);
       })
       .catch((caught: unknown) => {
-        if (active) setError((caught as Error).message);
+        if (active) setError(getUserFacingError(caught, "We could not load profiles. Please try again later."));
       })
       .finally(() => {
         if (active) setLoading(false);
