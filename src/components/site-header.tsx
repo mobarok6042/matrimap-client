@@ -103,7 +103,7 @@ export function SiteHeader() {
     <>
       <header
         className={cn(
-          "z-50 mx-auto w-[calc(100%-2rem)] max-w-6xl",
+          "z-50 mx-auto w-[calc(100%-2rem)] max-w-[90rem]",
           isHome
             ? "fixed left-1/2 top-4 -translate-x-1/2"
             : "sticky top-4 mt-4",

@@ -74,7 +74,7 @@ export default function ServicesPage() {
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-12">
+    <main className="mx-auto max-w-7xl px-4 py-12">
       {/* Header section */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}

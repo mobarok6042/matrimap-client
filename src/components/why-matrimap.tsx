@@ -21,7 +21,7 @@ const reasons = [
 
 export function WhyMatriMap() {
   return (
-    <section className="mx-auto max-w-6xl px-4 py-16 sm:py-20" aria-labelledby="why-matrimap">
+    <section className="mx-auto max-w-7xl px-4 py-16 sm:py-20" aria-labelledby="why-matrimap">
       <div className="overflow-hidden rounded-3xl border border-border bg-card/70">
         <div className="grid md:grid-cols-2">
           <div className="p-6 sm:p-10 lg:p-12">

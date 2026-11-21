@@ -46,7 +46,7 @@ export function HomeServices() {
 
   if (role === "vendor") {
     return (
-      <section className="mx-auto max-w-6xl px-4 py-16 sm:py-20" aria-labelledby="vendor-services">
+      <section className="mx-auto max-w-7xl px-4 py-16 sm:py-20" aria-labelledby="vendor-services">
         <p className="text-sm font-medium uppercase tracking-wider text-primary">Vendor space</p>
         <h2 id="vendor-services" className="mt-2 text-3xl font-semibold tracking-tight">
           Manage your services
@@ -62,7 +62,7 @@ export function HomeServices() {
   }
 
   return (
-    <section className="mx-auto max-w-6xl px-4 py-16 sm:py-20" aria-labelledby="featured-services">
+    <section className="mx-auto max-w-7xl px-4 py-16 sm:py-20" aria-labelledby="featured-services">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm font-medium uppercase tracking-wider text-primary">

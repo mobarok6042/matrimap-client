@@ -12,7 +12,7 @@ const navigationLinks = [
 export function SiteFooter() {
   return (
     <footer className="mt-8 border-t border-border bg-card/60">
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 text-center sm:grid-cols-2 sm:text-left lg:grid-cols-4">
+      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 text-center sm:grid-cols-2 sm:text-left lg:grid-cols-4">
         <div className="flex flex-col items-center sm:items-start">
           <Link href="/" aria-label="MatriMap home" className="inline-flex items-center justify-center sm:justify-start">
             <Image src="/logo.png" alt="MatriMap" width={54} height={44} className="h-11 w-auto object-contain" />
@@ -64,7 +64,7 @@ export function SiteFooter() {
       </div>
 
       <div className="border-t border-border">
-        <p className="mx-auto max-w-6xl px-4 py-5 text-center text-xs text-muted-foreground sm:text-left">
+        <p className="mx-auto max-w-7xl px-4 py-5 text-center text-xs text-muted-foreground sm:text-left">
           © {new Date().getFullYear()} MatriMap. All rights reserved.
         </p>
       </div>

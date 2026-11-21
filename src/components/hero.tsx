@@ -35,7 +35,7 @@ export function Hero() {
 
       {/* Content */}
       <motion.div
-        className="relative z-10 mx-auto flex min-h-[580px] max-w-5xl flex-col items-center justify-center gap-6 px-4 py-24 text-center sm:min-h-[680px] sm:py-32 lg:min-h-[740px]"
+        className="relative z-10 mx-auto flex min-h-[580px] max-w-6xl flex-col items-center justify-center gap-6 px-4 py-24 text-center sm:min-h-[680px] sm:py-32 lg:min-h-[740px]"
         initial="hidden"
         animate="visible"
         transition={{ staggerChildren: 0.12 }}
