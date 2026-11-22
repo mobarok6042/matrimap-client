@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Check, Loader2, X } from "lucide-react";
 import { apiFetch, getAuthErrorMessage, getUserFacingError } from "@/lib/api";
 import { authClient, signIn, signUp } from "@/lib/auth-client";
-import { showErrorAlert, showSuccessAlert, showWarningAlert } from "@/lib/alerts";
+import { showAuthSuccessAlert, showErrorAlert, showWarningAlert } from "@/lib/alerts";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -125,9 +125,10 @@ export function AuthForm({
         }
 
         if (imageUploadFailed) {
-          void showWarningAlert("Account created", "Your profile photo could not be uploaded.");
+          await showAuthSuccessAlert("Signup", role);
+          void showWarningAlert("Profile image skipped", "Your account was created, but the profile photo could not be uploaded.");
         } else {
-          void showSuccessAlert("Account created", "Welcome to MatriMap.");
+          await showAuthSuccessAlert("Signup", role);
         }
         router.push(`/${role}?welcome=1`);
         router.refresh();
@@ -147,7 +148,10 @@ export function AuthForm({
         return;
       }
 
-      void showSuccessAlert("Signed in", "Welcome back to MatriMap.");
+      const sessionResult = await authClient.getSession();
+      const signedInRole =
+        (sessionResult.data?.user as { role?: string } | undefined)?.role ?? "customer";
+      await showAuthSuccessAlert("Signin", signedInRole);
       router.push("/dashboard");
       router.refresh();
     } catch (caught) {

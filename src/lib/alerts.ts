@@ -28,6 +28,20 @@ export function showSuccessAlert(title: string, text?: string) {
   });
 }
 
+export function showAuthSuccessAlert(action: "Signup" | "Signin", role: string) {
+  return Swal.fire({
+    ...getThemeColors(),
+    icon: "success",
+    title: `${action} done`,
+    text: `${action} done as ${role}.`,
+    position: "center",
+    timer: 2200,
+    timerProgressBar: true,
+    showConfirmButton: false,
+    allowOutsideClick: false,
+  });
+}
+
 export function showWarningAlert(title: string, text: string) {
   return Swal.fire({
     ...getThemeColors(),

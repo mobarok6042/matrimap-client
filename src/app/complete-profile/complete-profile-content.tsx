@@ -7,7 +7,7 @@ import { Loader2 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { authClient, useSession } from "@/lib/auth-client";
-import { showErrorAlert, showSuccessAlert } from "@/lib/alerts";
+import { showAuthSuccessAlert, showErrorAlert } from "@/lib/alerts";
 import type { UserRole } from "@/lib/auth-client";
 import { getAuthErrorMessage, getUserFacingError } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -42,7 +42,7 @@ export default function CompleteProfilePage() {
       }
 
       await refetch();
-      void showSuccessAlert("Account type saved");
+      await showAuthSuccessAlert("Signin", nextRole);
       router.replace("/dashboard");
       router.refresh();
     } catch (caught) {
