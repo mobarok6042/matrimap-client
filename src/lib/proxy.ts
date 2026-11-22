@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 
-const UPSTREAM = process.env.AUTH_UPSTREAM_URL ?? "http://localhost:4000";
+const UPSTREAM = (process.env.AUTH_UPSTREAM_URL ?? "http://localhost:4000").replace(/\/+$/, "");
 const APP_ORIGIN = process.env.NEXT_PUBLIC_SERVER_URL ?? "http://localhost:3000";
 
 /** Forward requests from Next.js to the Express backend server with cookies and headers intact. */

@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-const UPSTREAM = process.env.AUTH_UPSTREAM_URL ?? "http://localhost:4000";
+const UPSTREAM = (process.env.AUTH_UPSTREAM_URL ?? "http://localhost:4000").replace(/\/+$/, "");
 const APP_ORIGIN = process.env.NEXT_PUBLIC_SERVER_URL ?? "http://localhost:3000";
 
 /** Forward Better Auth requests to the Express server that owns the handler. */

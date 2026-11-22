@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
     ],
   },
   async rewrites() {
-    const upstream = process.env.AUTH_UPSTREAM_URL ?? "http://localhost:4000";
+    const upstream = (process.env.AUTH_UPSTREAM_URL ?? "http://localhost:4000").replace(/\/+$/, "");
     return [
       {
         source: "/api/services/:path*",

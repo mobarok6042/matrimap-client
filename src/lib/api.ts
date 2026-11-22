@@ -1,7 +1,7 @@
 const SERVER_URL =
   typeof window !== "undefined"
     ? ""
-    : (process.env.AUTH_UPSTREAM_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000");
+    : (process.env.AUTH_UPSTREAM_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000").replace(/\/+$/, "");
 
 export interface ApiErrorBody {
   error?: string;
