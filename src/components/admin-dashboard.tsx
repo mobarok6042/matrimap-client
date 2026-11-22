@@ -182,7 +182,7 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
   }
 
   return (
-    <div className="space-y-5 sm:space-y-6">
+    <div className="min-w-0 max-w-full space-y-5 overflow-hidden sm:space-y-6">
       <header id="overview" className="mb-2 scroll-mt-24">
         <p className="text-sm font-medium uppercase tracking-wider text-primary">Admin control panel</p>
         <h1 className="mt-2 break-words text-2xl font-semibold tracking-tight sm:text-3xl">
@@ -234,10 +234,11 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
       </section>
 
       <div className="grid gap-8">
-        <Card id="vendor-plan-payments" className="scroll-mt-24 border-border bg-card">
+        <Card id="vendor-plan-payments" className="scroll-mt-24 max-w-full overflow-hidden border-border bg-card">
           <CardHeader className="px-4 sm:px-6">
-            <CardTitle className="flex items-center gap-2">
-              <CreditCard className="size-5 text-primary" /> Vendor plan payments
+            <CardTitle className="flex min-w-0 items-start gap-2">
+              <CreditCard className="mt-0.5 size-5 shrink-0 text-primary" />
+              <span className="break-words">Vendor plan payments</span>
             </CardTitle>
             <CardDescription>Vendor plan charges, session details, and payment status from Stripe.</CardDescription>
           </CardHeader>
@@ -250,7 +251,60 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
             ) : payments.length === 0 ? (
               <p className="py-4 text-sm text-muted-foreground">No vendor plan payments found.</p>
             ) : (
-              <div className="-mx-4 overflow-x-auto rounded-xl border-y border-border sm:mx-0 sm:border-x">
+              <>
+                <div className="space-y-3 lg:hidden">
+                {payments.map((payment) => (
+                  <article key={payment._id} className="min-w-0 rounded-xl border border-border bg-background/60 p-4">
+                    <div className="flex min-w-0 items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="break-words font-semibold capitalize">{payment.plan} plan</p>
+                        <p className="mt-1 break-all font-mono text-xs text-muted-foreground">
+                          {payment.vendorId}
+                        </p>
+                      </div>
+                      <span
+                        className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${
+                          payment.status === "paid"
+                            ? "bg-primary/10 text-primary"
+                            : payment.status === "failed" || payment.status === "expired"
+                              ? "bg-destructive/10 text-destructive"
+                              : "bg-secondary/30 text-secondary-foreground"
+                        }`}
+                      >
+                        {payment.status}
+                      </span>
+                    </div>
+                    <dl className="mt-4 grid min-w-0 grid-cols-1 gap-3 text-sm min-[420px]:grid-cols-2">
+                      <div className="min-w-0">
+                        <dt className="text-xs text-muted-foreground">Amount</dt>
+                        <dd className="mt-1 font-medium">
+                          {new Intl.NumberFormat(undefined, {
+                            style: "currency",
+                            currency: payment.currency.toUpperCase(),
+                          }).format(payment.amount / 100)}
+                        </dd>
+                      </div>
+                      <div className="min-w-0">
+                        <dt className="text-xs text-muted-foreground">Created</dt>
+                        <dd className="mt-1 break-words">
+                          {new Date(payment.createdAt).toLocaleDateString()}
+                        </dd>
+                      </div>
+                      <div className="min-w-0 min-[420px]:col-span-2">
+                        <dt className="text-xs text-muted-foreground">Stripe session</dt>
+                        <dd className="mt-1 break-all font-mono text-xs">{payment.stripeSessionId}</dd>
+                      </div>
+                      <div className="min-w-0 min-[420px]:col-span-2">
+                        <dt className="text-xs text-muted-foreground">Subscription</dt>
+                        <dd className="mt-1 break-all font-mono text-xs">
+                          {payment.stripeSubscriptionId || "—"}
+                        </dd>
+                      </div>
+                    </dl>
+                  </article>
+                ))}
+                </div>
+                <div className="hidden overflow-x-auto rounded-xl border border-border lg:block">
                 <table className="w-full min-w-[900px] border-collapse text-left text-sm">
                   <thead className="bg-muted text-xs uppercase tracking-wide text-muted-foreground">
                     <tr>
@@ -306,15 +360,17 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
                     ))}
                   </tbody>
                 </table>
-              </div>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>
 
-        <Card id="manage-services" className="scroll-mt-24 border-border bg-card">
+        <Card id="manage-services" className="scroll-mt-24 max-w-full overflow-hidden border-border bg-card">
           <CardHeader className="px-4 sm:px-6">
-            <CardTitle className="flex items-center gap-2">
-              <Clock3 className="size-5 text-primary" /> Manage services
+            <CardTitle className="flex min-w-0 items-start gap-2">
+              <Clock3 className="mt-0.5 size-5 shrink-0 text-primary" />
+              <span className="break-words">Manage services</span>
             </CardTitle>
             <CardDescription>
               Review new listings and activate or deactivate approved services.
@@ -438,10 +494,11 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
           </CardContent>
         </Card>
 
-        <Card id="managed-accounts" className="scroll-mt-24 border-border bg-card">
+        <Card id="managed-accounts" className="scroll-mt-24 max-w-full overflow-hidden border-border bg-card">
           <CardHeader className="px-4 sm:px-6">
-            <CardTitle className="flex items-center gap-2">
-              <UserRound className="size-5 text-primary" /> Customer and vendor accounts
+            <CardTitle className="flex min-w-0 items-start gap-2">
+              <UserRound className="mt-0.5 size-5 shrink-0 text-primary" />
+              <span className="break-words">Customer and vendor accounts</span>
             </CardTitle>
             <CardDescription>
               Blocked accounts cannot use protected account features.
