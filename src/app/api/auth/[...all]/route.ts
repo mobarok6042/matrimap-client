@@ -19,7 +19,8 @@ async function proxy(request: NextRequest): Promise<Response> {
       name === "connection" ||
       name === "content-encoding" ||
       name === "transfer-encoding" ||
-      name === "accept-encoding"
+      name === "accept-encoding" ||
+      name === "expect"
     ) {
       return;
     }
