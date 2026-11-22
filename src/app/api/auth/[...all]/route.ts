@@ -11,21 +11,10 @@ async function proxy(request: NextRequest): Promise<Response> {
   const target = `${UPSTREAM}${incoming.pathname}${incoming.search}`;
 
   const headers = new Headers();
-  request.headers.forEach((value, key) => {
-    const name = key.toLowerCase();
-    if (
-      name === "host" ||
-      name === "content-length" ||
-      name === "connection" ||
-      name === "content-encoding" ||
-      name === "transfer-encoding" ||
-      name === "accept-encoding" ||
-      name === "expect"
-    ) {
-      return;
-    }
-    headers.set(key, value);
-  });
+  for (const name of ["accept", "content-type", "cookie", "authorization", "user-agent"] as const) {
+    const value = request.headers.get(name);
+    if (value) headers.set(name, value);
+  }
 
   // Better Auth validates the origin against `trustedOrigins` on the server.
   headers.set("origin", APP_ORIGIN);
