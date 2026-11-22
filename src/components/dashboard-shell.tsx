@@ -279,8 +279,8 @@ export function DashboardShell({ role, name, email, children }: DashboardShellPr
   }, [mobileMenuOpen]);
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-6 sm:py-8">
-      <div className="grid gap-6 lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-8">
+    <main className="mx-auto max-w-7xl px-3 py-5 sm:px-4 sm:py-8">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-8">
         <aside className="sticky top-24 hidden h-[calc(100vh-7rem)] overflow-hidden rounded-2xl border border-border bg-card shadow-sm lg:block">
           <DashboardSidebar
             role={role}
@@ -294,7 +294,7 @@ export function DashboardShell({ role, name, email, children }: DashboardShellPr
         <div className="min-w-0">
           <div
             id={role === "admin" ? undefined : "overview"}
-            className="mb-6 flex items-center justify-between gap-4"
+            className="mb-4 flex min-h-10 items-center justify-between gap-3 sm:mb-6 sm:gap-4"
           >
             <div>
               {role !== "admin" && (
@@ -341,7 +341,7 @@ export function DashboardShell({ role, name, email, children }: DashboardShellPr
             role="dialog"
             aria-modal="true"
             aria-label="Dashboard navigation"
-            className="absolute inset-y-0 left-0 flex w-[min(20rem,85vw)] flex-col border-r border-border bg-card text-card-foreground shadow-2xl"
+            className="absolute inset-y-0 left-0 flex w-[min(22rem,88vw)] flex-col border-r border-border bg-card text-card-foreground shadow-2xl"
           >
             <div className="flex items-center justify-end border-b border-border p-3">
               <button

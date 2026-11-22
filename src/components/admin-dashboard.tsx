@@ -182,16 +182,18 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       <header id="overview" className="mb-2 scroll-mt-24">
         <p className="text-sm font-medium uppercase tracking-wider text-primary">Admin control panel</p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight">Welcome, {adminName}</h1>
+        <h1 className="mt-2 break-words text-2xl font-semibold tracking-tight sm:text-3xl">
+          Welcome, {adminName}
+        </h1>
         <p className="mt-1 text-muted-foreground">
           Review service listings and manage customer and vendor access.
         </p>
       </header>
 
-      <section aria-label="Platform statistics" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section aria-label="Platform statistics" className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
         {[
           {
             label: "Service listings",
@@ -218,7 +220,7 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
         ].map((stat) => {
           const Icon = stat.icon;
           return (
-            <article key={stat.label} className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+            <article key={stat.label} className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
                 <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -233,13 +235,13 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
 
       <div className="grid gap-8">
         <Card id="vendor-plan-payments" className="scroll-mt-24 border-border bg-card">
-          <CardHeader>
+          <CardHeader className="px-4 sm:px-6">
             <CardTitle className="flex items-center gap-2">
               <CreditCard className="size-5 text-primary" /> Vendor plan payments
             </CardTitle>
             <CardDescription>Vendor plan charges, session details, and payment status from Stripe.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-3 px-4 sm:px-6">
             {paymentsError && <p role="alert" className="text-sm text-destructive">{paymentsError}</p>}
             {paymentsLoading ? (
               <p className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
@@ -248,8 +250,8 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
             ) : payments.length === 0 ? (
               <p className="py-4 text-sm text-muted-foreground">No vendor plan payments found.</p>
             ) : (
-              <div className="overflow-x-auto rounded-xl border border-border">
-                <table className="w-full min-w-[1050px] border-collapse text-left text-sm">
+              <div className="-mx-4 overflow-x-auto rounded-xl border-y border-border sm:mx-0 sm:border-x">
+                <table className="w-full min-w-[900px] border-collapse text-left text-sm">
                   <thead className="bg-muted text-xs uppercase tracking-wide text-muted-foreground">
                     <tr>
                       <th scope="col" className="px-4 py-3 font-semibold">Vendor ID</th>
@@ -310,7 +312,7 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
         </Card>
 
         <Card id="manage-services" className="scroll-mt-24 border-border bg-card">
-          <CardHeader>
+          <CardHeader className="px-4 sm:px-6">
             <CardTitle className="flex items-center gap-2">
               <Clock3 className="size-5 text-primary" /> Manage services
             </CardTitle>
@@ -318,7 +320,7 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
               Review new listings and activate or deactivate approved services.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 px-4 sm:px-6">
             {servicesError && <p role="alert" className="text-sm text-destructive">{servicesError}</p>}
             {servicesLoading ? (
               <p className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
@@ -364,7 +366,7 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
                           </span>
                         )}
                       </div>
-                      <h2 className="text-lg font-semibold">{service.title}</h2>
+                      <h2 className="break-words text-lg font-semibold">{service.title}</h2>
                       <p className="mt-1 text-sm text-muted-foreground">
                         Vendor: {service.vendorName} · ৳ {service.price.toLocaleString()} /{" "}
                         {service.pricingUnit || "event"}
@@ -381,6 +383,7 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
                             <Button
                               type="button"
                               size="sm"
+                              className="w-full sm:w-auto"
                               variant="secondary"
                               disabled={serviceAction !== null}
                               onClick={() => reviewService(service._id, "approve")}
@@ -395,6 +398,7 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
                             <Button
                               type="button"
                               size="sm"
+                              className="w-full sm:w-auto"
                               variant="destructive"
                               disabled={serviceAction !== null}
                               onClick={() => reviewService(service._id, "decline")}
@@ -412,6 +416,7 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
                           <Button
                             type="button"
                             size="sm"
+                            className="w-full sm:w-auto"
                             variant={service.isAvailable === false ? "secondary" : "outline"}
                             disabled={serviceAction !== null}
                             onClick={() => toggleServiceAvailability(service)}
@@ -434,7 +439,7 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
         </Card>
 
         <Card id="managed-accounts" className="scroll-mt-24 border-border bg-card">
-          <CardHeader>
+          <CardHeader className="px-4 sm:px-6">
             <CardTitle className="flex items-center gap-2">
               <UserRound className="size-5 text-primary" /> Customer and vendor accounts
             </CardTitle>
@@ -442,7 +447,7 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
               Blocked accounts cannot use protected account features.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-3 px-4 sm:px-6">
             {usersError && <p role="alert" className="text-sm text-destructive">{usersError}</p>}
             {usersLoading ? (
               <p className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
@@ -473,6 +478,7 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
                   <Button
                     type="button"
                     size="sm"
+                    className="w-full sm:w-auto"
                     variant={user.isBlocked ? "secondary" : "destructive"}
                     disabled={userAction !== null}
                     onClick={() => toggleUserBlock(user)}
