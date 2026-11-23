@@ -193,7 +193,7 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
         </p>
       </header>
 
-      <section aria-label="Platform statistics" className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
+      <section aria-label="Platform statistics" className="grid grid-cols-2 gap-2 sm:gap-4 lg:grid-cols-4">
         {[
           {
             label: "Service listings",
@@ -220,14 +220,14 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
         ].map((stat) => {
           const Icon = stat.icon;
           return (
-            <article key={stat.label} className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
+            <article key={stat.label} className="rounded-xl border border-border bg-card p-3 shadow-sm sm:rounded-2xl sm:p-5">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
-                <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <Icon className="size-5" />
+                <p className="text-xs font-medium leading-tight text-muted-foreground sm:text-sm">{stat.label}</p>
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary sm:size-10 sm:rounded-xl">
+                  <Icon className="size-4 sm:size-5" />
                 </span>
               </div>
-              <p className="mt-4 text-3xl font-semibold tracking-tight text-foreground">{stat.value}</p>
+              <p className="mt-3 text-2xl font-semibold tracking-tight text-foreground sm:mt-4 sm:text-3xl">{stat.value}</p>
             </article>
           );
         })}
